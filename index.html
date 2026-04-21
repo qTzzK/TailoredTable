@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tailored Table — Personalized Meal Prep & Private Chef</title>
+  <meta name="description" content="Personalized meal prep and private chef experiences. Restaurant-quality meals crafted for your lifestyle and preferences.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- NAVIGATION -->
+  <nav>
+    <a class="nav-brand" href="index.html">
+      <span class="nav-brand-name">Tailored Table</span>
+      <span class="nav-brand-tag">Flavors True to You</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="menus.html">Menus</a></li>
+    </ul>
+    <a href="contact.html" class="nav-inquire">Inquire</a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- MOBILE OVERLAY -->
+  <div class="mobile-overlay" id="mobileMenu">
+    <button class="mobile-close" id="mobileClose" aria-label="Close menu">×</button>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="services.html">Services</a>
+    <a href="menus.html">Menus</a>
+    <a href="contact.html">Inquire</a>
+  </div>
+
+  <div class="page-wrapper">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-inner">
+        <span class="hero-script">Welcome to</span>
+        <h1>Tailored<br>Table</h1>
+        <p class="hero-tagline">Flavors True to You</p>
+        <div class="hero-divider"></div>
+        <p class="hero-subtitle">Personalized Meal Prep &amp; Private Chef Experiences</p>
+        <p class="hero-detail">Bringing restaurant-quality meals into your home</p>
+        <div class="btn-group">
+          <a href="services.html" class="btn btn-primary">View Services</a>
+          <a href="contact.html" class="btn btn-outline">Inquire</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES PREVIEW -->
+    <section class="section" style="background: var(--cream);">
+      <div class="container">
+        <div class="section-header" data-animate>
+          <span class="section-script">What I Offer</span>
+          <h2>Every Meal, Made for You</h2>
+          <div class="ornament"><div class="ornament-diamond"></div></div>
+          <p>From weekly meal prep to intimate multi-course dinners—each experience is thoughtfully crafted around your lifestyle and preferences.</p>
+        </div>
+        <div class="services-grid">
+          <div class="service-card" data-animate>
+            <div class="service-icon">✦</div>
+            <h3>Weekly Meal Prep</h3>
+            <p>Customized meals prepared fresh each week—delivered or cooked directly in your home kitchen. No stress, just really good food.</p>
+            <a href="services.html" class="btn btn-outline" style="font-size:0.85rem; padding:0.65rem 1.75rem;">Learn More</a>
+          </div>
+          <div class="service-card" data-animate>
+            <div class="service-icon">✦</div>
+            <h3>Private Chef</h3>
+            <p>Intimate, multi-course dining experiences in the comfort of your own home. Special occasions made unforgettable.</p>
+            <a href="services.html" class="btn btn-outline" style="font-size:0.85rem; padding:0.65rem 1.75rem;">Learn More</a>
+          </div>
+          <div class="service-card" data-animate>
+            <div class="service-icon">✦</div>
+            <h3>Small Events</h3>
+            <p>Dinner parties, gatherings, and celebrations—beautifully catered and curated so you can enjoy every moment as a guest.</p>
+            <a href="services.html" class="btn btn-outline" style="font-size:0.85rem; padding:0.65rem 1.75rem;">Learn More</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUOTE -->
+    <div class="quote-section">
+      <span class="quote-mark">"</span>
+      <p class="quote-text">Food should feel both exciting and comforting—something you actually look forward to, not just something you check off your list.</p>
+      <p class="quote-attr">— Tailored Table</p>
+    </div>
+
+    <!-- ABOUT PREVIEW -->
+    <section class="section" style="background: var(--off-white);">
+      <div class="container">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center;" class="about-preview-grid">
+          <div data-animate>
+            <span class="section-script">The Story</span>
+            <h2 style="font-family:'Playfair Display',serif; font-size: clamp(2rem,3.5vw,2.75rem); font-weight:700; color:var(--charcoal); margin-bottom:1.5rem; line-height:1.2;">Born from a Love of Cooking for Others</h2>
+            <p style="font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:var(--charcoal); line-height:1.85; margin-bottom:1.25rem;">Through personalized meal prep and private chef experiences, I focus on creating flavorful, fresh meals that fit seamlessly into your lifestyle.</p>
+            <p style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.15rem; color:var(--warm-gray); line-height:1.8; margin-bottom:2rem;">Everything is designed with intention, care, and your preferences in mind.</p>
+            <a href="about.html" class="btn btn-primary">Read My Story</a>
+          </div>
+          <div data-animate style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div style="background:var(--burgundy-light); border:1px solid var(--border-color); aspect-ratio:3/4; display:flex; align-items:center; justify-content:center;">
+              <span style="font-family:'Dancing Script',cursive; font-size:1.25rem; color:rgba(122,21,48,0.3);">Tailored</span>
+            </div>
+            <div style="background:var(--green-light); border:1px solid var(--border-green); aspect-ratio:3/4; margin-top:2rem; display:flex; align-items:center; justify-content:center;">
+              <span style="font-family:'Dancing Script',cursive; font-size:1.25rem; color:rgba(45,78,26,0.3);">Table</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MENUS TEASER -->
+    <section class="section" style="background:var(--cream);">
+      <div class="container">
+        <div class="section-header" data-animate>
+          <span class="section-script green">Explore</span>
+          <h2>Sample Menus</h2>
+          <div class="ornament green"><div class="ornament-diamond"></div></div>
+          <p>Take a look at some of the curated menus Tailored Table has crafted—from intimate chef's dinners to weekly meal prep selections.</p>
+        </div>
+        <div style="text-align:center;" data-animate>
+          <a href="menus.html" class="btn btn-green">View Sample Menus</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="cta-section">
+      <span class="cta-script">Let's Begin</span>
+      <h2>Ready to Experience It?</h2>
+      <p>Let's talk about how Tailored Table can bring something special to your table.</p>
+      <a href="contact.html" class="btn btn-outline-green">Start the Conversation</a>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-brand">Tailored Table</div>
+      <div class="footer-tagline">Flavors True to You</div>
+      <ul class="footer-nav">
+        <li><a href="about.html">About</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="menus.html">Menus</a></li>
+        <li><a href="contact.html">Inquire</a></li>
+      </ul>
+      <div class="footer-divider"></div>
+      <a href="https://www.instagram.com/miaprivatechef" target="_blank" rel="noopener" class="footer-instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
+        </svg>
+        Instagram
+      </a>
+      <p class="footer-copy">© 2025 Tailored Table. All rights reserved.</p>
+    </footer>
+
+  </div>
+
+  <script src="js/main.js"></script>
+  <style>
+    @media (max-width: 768px) {
+      .about-preview-grid { grid-template-columns: 1fr !important; gap: 2.5rem !important; }
+      .about-preview-grid > div:last-child { display: none !important; }
+    }
+  </style>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inquire — Tailored Table</title>
+  <meta name="description" content="Reach out to Tailored Table to discuss meal prep, private chef experiences, or event catering.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- NAVIGATION -->
+  <nav>
+    <a class="nav-brand" href="index.html">
+      <span class="nav-brand-name">Tailored Table</span>
+      <span class="nav-brand-tag">Flavors True to You</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="menus.html">Menus</a></li>
+    </ul>
+    <a href="contact.html" class="nav-inquire active">Inquire</a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- MOBILE OVERLAY -->
+  <div class="mobile-overlay" id="mobileMenu">
+    <button class="mobile-close" id="mobileClose" aria-label="Close menu">×</button>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="services.html">Services</a>
+    <a href="menus.html">Menus</a>
+    <a href="contact.html">Inquire</a>
+  </div>
+
+  <div class="page-wrapper">
+
+    <!-- PAGE HERO -->
+    <section class="page-hero">
+      <span class="script">Let's Connect</span>
+      <h1>Inquire</h1>
+      <div class="ornament" style="margin:1.25rem auto;"><div class="ornament-diamond"></div></div>
+      <p>Tell me a little about what you're looking for and I'll be in touch within 24–48 hours.</p>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section class="section" style="background: var(--cream);">
+      <div class="container">
+        <div class="contact-grid">
+
+          <!-- SIDEBAR -->
+          <div class="contact-info-sticky" data-animate>
+            <div class="contact-info">
+              <h3>Get in Touch</h3>
+              <p>Whether you're looking for weekly meal prep, a special dinner, or have a gathering in mind—I'd love to hear from you.</p>
+              <div class="contact-divider"></div>
+
+              <div class="contact-detail">
+                <p class="contact-detail-label">Response Time</p>
+                <p class="contact-detail-value">Within 24–48 hours</p>
+              </div>
+              <div class="contact-detail">
+                <p class="contact-detail-label">Service Area</p>
+                <p class="contact-detail-value">Miami, FL &amp; surrounding areas</p>
+              </div>
+              <div class="contact-detail">
+                <p class="contact-detail-label">Availability</p>
+                <p class="contact-detail-value">Booking select dates—inquire early</p>
+              </div>
+
+              <a
+                href="https://www.instagram.com/"
+                target="_blank"
+                rel="noopener"
+                class="contact-social"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                  <circle cx="12" cy="12" r="4"/>
+                  <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
+                </svg>
+                Follow on Instagram
+              </a>
+            </div>
+          </div>
+
+          <!-- FORM -->
+          <div data-animate>
+            <div class="contact-form-wrapper">
+              <h2 class="form-title">Send an Inquiry</h2>
+              <p class="form-subtitle">All fields help me prepare the best response for you.</p>
+
+              <!--
+                SETUP: Replace YOUR_FORM_ID below with your Formspree form ID.
+                Create a free account at https://formspree.io and create a new form.
+                Your action URL will look like: https://formspree.io/f/xyzabcde
+              -->
+              <form
+                id="contactForm"
+                action="https://formspree.io/f/mdaywdor"
+                method="POST"
+              >
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      placeholder="Your name"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      placeholder="your@email.com"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      placeholder="(000) 000-0000"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="service">Service Type</label>
+                    <div class="select-wrapper">
+                      <select id="service" name="service" required>
+                        <option value="" disabled selected>Select a service</option>
+                        <option value="meal-prep">Weekly Meal Prep</option>
+                        <option value="private-chef">Private Chef Experience</option>
+                        <option value="small-event">Small Event / Catering</option>
+                        <option value="unsure">Not Sure Yet</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="guests">Number of People</label>
+                    <input
+                      type="number"
+                      id="guests"
+                      name="guests"
+                      placeholder="e.g. 2 or 10"
+                      min="1"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="date">Date / Frequency</label>
+                    <input
+                      type="text"
+                      id="date"
+                      name="date"
+                      placeholder="e.g. Weekly or June 15"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="message">Tell Me More</label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    placeholder="Share any dietary preferences, goals, special requests, or details about your event…"
+                    required
+                  ></textarea>
+                </div>
+
+                <div class="form-submit">
+                  <button type="submit" class="btn btn-primary">Send Inquiry</button>
+                  <p class="form-note">I'll respond within 24–48 hours.</p>
+                </div>
+
+                <div class="form-success" id="formSuccess">
+                  ✦ &nbsp;Thank you! I'll be in touch very soon.
+                </div>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-brand">Tailored Table</div>
+      <div class="footer-tagline">Flavors True to You</div>
+      <ul class="footer-nav">
+        <li><a href="about.html">About</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="menus.html">Menus</a></li>
+        <li><a href="contact.html">Inquire</a></li>
+      </ul>
+      <div class="footer-divider"></div>
+      <a href="https://www.instagram.com/miaprivatechef" target="_blank" rel="noopener" class="footer-instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
+        </svg>
+        Instagram
+      </a>
+      <p class="footer-copy">© 2025 Tailored Table. All rights reserved.</p>
+    </footer>
+
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

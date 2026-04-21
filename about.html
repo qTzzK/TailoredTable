@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — Tailored Table</title>
+  <meta name="description" content="The story behind Tailored Table—a private chef and meal prep service born from a love of cooking for others.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- NAVIGATION -->
+  <nav>
+    <a class="nav-brand" href="index.html">
+      <span class="nav-brand-name">Tailored Table</span>
+      <span class="nav-brand-tag">Flavors True to You</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html" class="active">About</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="menus.html">Menus</a></li>
+    </ul>
+    <a href="contact.html" class="nav-inquire">Inquire</a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- MOBILE OVERLAY -->
+  <div class="mobile-overlay" id="mobileMenu">
+    <button class="mobile-close" id="mobileClose" aria-label="Close menu">×</button>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="services.html">Services</a>
+    <a href="menus.html">Menus</a>
+    <a href="contact.html">Inquire</a>
+  </div>
+
+  <div class="page-wrapper">
+
+    <!-- PAGE HERO -->
+    <section class="page-hero">
+      <span class="script">The Story</span>
+      <h1>About</h1>
+      <div class="ornament" style="margin:1.25rem auto;"><div class="ornament-diamond"></div></div>
+      <p>A love of cooking for others—and a belief that food should bring both joy and ease.</p>
+    </section>
+
+    <!-- ABOUT CONTENT -->
+    <section class="section" style="background: var(--cream);">
+      <div class="container">
+        <div class="about-grid">
+          <div class="about-image-wrapper" data-animate>
+            <div class="about-image-placeholder">
+              <span>✦</span>
+              <p>Add your photo here</p>
+            </div>
+          </div>
+          <div class="about-text" data-animate>
+            <h2>Chef &amp; Creator</h2>
+            <span class="script-accent">Behind the Table</span>
+            <p>Tailored Table was born from a love of cooking for others and creating meals that bring people together.</p>
+            <p>I've always believed that food should feel both exciting and comforting—something you actually look forward to, not just something you check off your list.</p>
+            <p>Through personalized meal prep and private chef experiences, I focus on creating flavorful, fresh meals that fit seamlessly into your lifestyle. No stress, no overthinking—just really good food made for you.</p>
+            <p>Whether you're looking for weekly meals or a special dinner at home, everything is designed with intention, care, and your preferences in mind.</p>
+            <div style="margin-top:2.5rem;">
+              <a href="contact.html" class="btn btn-primary">Let's Work Together</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VALUES -->
+    <section class="section" style="background: var(--off-white); border-top: 1px solid var(--border-color);">
+      <div class="container">
+        <div class="section-header" data-animate>
+          <span class="section-script green">What Drives the Work</span>
+          <h2>The Values Behind Every Meal</h2>
+          <div class="ornament green"><div class="ornament-diamond"></div></div>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:2rem;" class="values-grid">
+          <div class="service-card" data-animate>
+            <div class="service-icon">✦</div>
+            <h3>Intentional</h3>
+            <p>Every menu is built around you—your goals, your tastes, your schedule. Nothing is accidental or generic.</p>
+          </div>
+          <div class="service-card" data-animate>
+            <div class="service-icon">✦</div>
+            <h3>Elevated</h3>
+            <p>Restaurant-quality technique and ingredients brought directly into your home, without the formality.</p>
+          </div>
+          <div class="service-card" data-animate>
+            <div class="service-icon">✦</div>
+            <h3>Effortless</h3>
+            <p>The goal is for you to open your fridge and feel taken care of—not overwhelmed. Good food, simplified.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="cta-section">
+      <span class="cta-script">Work Together</span>
+      <h2>Ready to Get Started?</h2>
+      <p>Reach out and let's create something delicious, together.</p>
+      <a href="contact.html" class="btn btn-outline-green">Send an Inquiry</a>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-brand">Tailored Table</div>
+      <div class="footer-tagline">Flavors True to You</div>
+      <ul class="footer-nav">
+        <li><a href="about.html">About</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="menus.html">Menus</a></li>
+        <li><a href="contact.html">Inquire</a></li>
+      </ul>
+      <div class="footer-divider"></div>
+      <a href="https://www.instagram.com/miaprivatechef" target="_blank" rel="noopener" class="footer-instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
+        </svg>
+        Instagram
+      </a>
+      <p class="footer-copy">© 2025 Tailored Table. All rights reserved.</p>
+    </footer>
+
+  </div>
+
+  <script src="js/main.js"></script>
+  <style>
+    @media (max-width: 768px) {
+      .values-grid { grid-template-columns: 1fr !important; max-width: 460px; margin: 0 auto; }
+    }
+  </style>
+</body>
+</html>
