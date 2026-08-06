@@ -3,25 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Services — Tailored Taste</title>
-  <meta name="description" content="Meal prep, private chef dinners, and small event catering—personalized for your lifestyle.">
-  <link rel="stylesheet" href="css/styles.css">
+  <title>Miami Meal Prep, Private Chef &amp; Catering | Tailored Taste</title>
+  <meta name="description" content="Weekly meal prep, private chef dinners, and small-event catering—personalized for your lifestyle and serving Miami-Dade &amp; Broward Counties.">
+  <link rel="canonical" href="https://www.mytailoredtaste.com/services">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="geo.region" content="US-FL">
+  <meta name="geo.placename" content="Miami">
+  <meta name="ICBM" content="25.7617, -80.1918">
+  <meta name="theme-color" content="#7a1530">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Tailored Taste">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Miami Meal Prep, Private Chef &amp; Catering | Tailored Taste">
+  <meta property="og:description" content="Weekly meal prep, private chef dinners, and small-event catering serving Miami-Dade &amp; Broward Counties.">
+  <meta property="og:url" content="https://www.mytailoredtaste.com/services">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Miami Meal Prep, Private Chef &amp; Catering | Tailored Taste">
+  <meta name="twitter:description" content="Weekly meal prep, private chef dinners, and small-event catering serving Miami-Dade &amp; Broward Counties.">
+  <link rel="stylesheet" href="/css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Caterer",
+        "@id": "https://www.mytailoredtaste.com/#business",
+        "name": "Tailored Taste",
+        "url": "https://www.mytailoredtaste.com/",
+        "address": { "@type": "PostalAddress", "addressLocality": "Miami", "addressRegion": "FL", "addressCountry": "US" },
+        "areaServed": [
+          { "@type": "AdministrativeArea", "name": "Miami-Dade County" },
+          { "@type": "AdministrativeArea", "name": "Broward County" }
+        ],
+        "sameAs": ["https://www.instagram.com/miaprivatechef"],
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Tailored Taste Services",
+          "itemListElement": [
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Weekly Meal Prep", "url": "https://www.mytailoredtaste.com/services#meal-prep", "description": "Customized weekly meals prepared fresh—in-home or delivered—portioned and labeled, with dietary accommodations." } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Private Chef Experience", "url": "https://www.mytailoredtaste.com/services#private-chef", "description": "Intimate multi-course dinners designed, prepared, and plated in your home for 2–10 guests." } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Small Events & Gatherings", "url": "https://www.mytailoredtaste.com/services#events", "description": "Custom-catered dinner parties and celebrations for 10–40 guests, including setup, service, and cleanup." } }
+          ]
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.mytailoredtaste.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://www.mytailoredtaste.com/services" }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
 
   <!-- NAVIGATION -->
   <nav>
-    <a class="nav-brand" href="index.html">
+    <a class="nav-brand" href="/">
       <span class="nav-brand-name">Tailored Taste</span>
       <span class="nav-brand-tag">Flavors True to You</span>
     </a>
     <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="about.html">About</a></li>
-      <li><a href="services.html" class="active">Services</a></li>
-      <li><a href="menus.html">Menus</a></li>
+      <li><a href="/">Home</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/services" class="active">Services</a></li>
+      <li><a href="/menus">Menus</a></li>
     </ul>
-    <a href="contact.html" class="nav-inquire">Inquire</a>
+    <a href="/contact" class="nav-inquire">Inquire</a>
     <button class="hamburger" id="hamburger" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
@@ -30,11 +81,11 @@
   <!-- MOBILE OVERLAY -->
   <div class="mobile-overlay" id="mobileMenu">
     <button class="mobile-close" id="mobileClose" aria-label="Close menu">×</button>
-    <a href="index.html">Home</a>
-    <a href="about.html">About</a>
-    <a href="services.html">Services</a>
-    <a href="menus.html">Menus</a>
-    <a href="contact.html">Inquire</a>
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/services">Services</a>
+    <a href="/menus">Menus</a>
+    <a href="/contact">Inquire</a>
   </div>
 
   <div class="page-wrapper">
@@ -44,7 +95,7 @@
       <span class="script">How We Work Together</span>
       <h1>Services</h1>
       <div class="ornament" style="margin:1.25rem auto;"><div class="ornament-diamond"></div></div>
-      <p>Three ways to bring Tailored Taste into your life—each one crafted around your needs.</p>
+      <p>Three ways to bring Tailored Taste into your life—each one crafted around your needs, anywhere in Miami-Dade &amp; Broward.</p>
     </section>
 
     <!-- SERVICE 1: MEAL PREP -->
@@ -61,7 +112,7 @@
           <li>Breakfasts, lunches, dinners &amp; snacks</li>
           <li>Dietary accommodations (GF, dairy-free, etc.)</li>
         </ul>
-        <a href="contact.html" class="btn btn-primary">Inquire About Meal Prep</a>
+        <a href="/contact" class="btn btn-primary">Inquire About Meal Prep</a>
       </div>
       <div class="service-visual">
         <div class="service-visual-inner" style="padding:3rem;">
@@ -85,7 +136,7 @@
           <li>Perfect for date nights, anniversaries &amp; celebrations</li>
           <li>Intimate gatherings (2–10 guests)</li>
         </ul>
-        <a href="contact.html" class="btn btn-green">Inquire About Private Chef</a>
+        <a href="/contact" class="btn btn-green">Inquire About Private Chef</a>
       </div>
       <div class="service-visual">
         <div class="service-visual-inner" style="padding:3rem;">
@@ -109,7 +160,7 @@
           <li>Events from 10–40 guests</li>
           <li>Seasonal &amp; themed menus available</li>
         </ul>
-        <a href="contact.html" class="btn btn-primary">Inquire About Events</a>
+        <a href="/contact" class="btn btn-primary">Inquire About Events</a>
       </div>
       <div class="service-visual">
         <div class="service-visual-inner" style="padding:3rem;">
@@ -124,7 +175,7 @@
       <span class="cta-script">Not Sure Where to Start?</span>
       <h2>Let's Find the Right Fit</h2>
       <p>Send me a message with what you have in mind and we'll figure out what works best for you.</p>
-      <a href="contact.html" class="btn btn-outline-green">Get in Touch</a>
+      <a href="/contact" class="btn btn-outline-green">Get in Touch</a>
     </div>
 
     <!-- FOOTER -->
@@ -132,10 +183,10 @@
       <div class="footer-brand">Tailored Taste</div>
       <div class="footer-tagline">Flavors True to You</div>
       <ul class="footer-nav">
-        <li><a href="about.html">About</a></li>
-        <li><a href="services.html">Services</a></li>
-        <li><a href="menus.html">Menus</a></li>
-        <li><a href="contact.html">Inquire</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/menus">Menus</a></li>
+        <li><a href="/contact">Inquire</a></li>
       </ul>
       <div class="footer-divider"></div>
       <a href="https://www.instagram.com/miaprivatechef" target="_blank" rel="noopener" class="footer-instagram">
@@ -146,11 +197,11 @@
         </svg>
         Instagram
       </a>
-      <p class="footer-copy">© 2025 Tailored Taste. All rights reserved.</p>
+      <p class="footer-copy">© 2026 Tailored Taste · Miami, FL — Serving Miami-Dade &amp; Broward Counties. All rights reserved.</p>
     </footer>
 
   </div>
 
-  <script src="js/main.js"></script>
+  <script src="/js/main.js"></script>
 </body>
 </html>
