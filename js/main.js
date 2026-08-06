@@ -50,8 +50,8 @@ if (form) {
     try {
       const res = await fetch(form.action, {
         method: 'POST',
-        body: new FormData(form),
-        headers: { Accept: 'application/json' },
+        body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       });
 
       if (res.ok) {

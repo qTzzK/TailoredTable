@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inquire — Tailored Table</title>
-  <meta name="description" content="Reach out to Tailored Table to discuss meal prep, private chef experiences, or event catering.">
+  <title>Inquire — Tailored Taste</title>
+  <meta name="description" content="Reach out to Tailored Taste to discuss meal prep, private chef experiences, or event catering.">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
   <!-- NAVIGATION -->
   <nav>
     <a class="nav-brand" href="index.html">
-      <span class="nav-brand-name">Tailored Table</span>
+      <span class="nav-brand-name">Tailored Taste</span>
       <span class="nav-brand-tag">Flavors True to You</span>
     </a>
     <ul class="nav-links">
@@ -95,15 +95,23 @@
               <p class="form-subtitle">All fields help me prepare the best response for you.</p>
 
               <!--
-                SETUP: Replace YOUR_FORM_ID below with your Formspree form ID.
-                Create a free account at https://formspree.io and create a new form.
-                Your action URL will look like: https://formspree.io/f/xyzabcde
+                Submissions are sent via Resend through the serverless
+                function in /api/contact.js (requires RESEND_API_KEY).
               -->
               <form
                 id="contactForm"
-                action="https://formspree.io/f/mdaywdor"
+                action="/api/contact"
                 method="POST"
               >
+                <!-- Honeypot: hidden from humans, filters out bots -->
+                <input
+                  type="text"
+                  name="company"
+                  tabindex="-1"
+                  autocomplete="off"
+                  style="position: absolute; left: -9999px;"
+                  aria-hidden="true"
+                />
                 <div class="form-row">
                   <div class="form-group">
                     <label for="name">Full Name</label>
@@ -201,7 +209,7 @@
 
     <!-- FOOTER -->
     <footer>
-      <div class="footer-brand">Tailored Table</div>
+      <div class="footer-brand">Tailored Taste</div>
       <div class="footer-tagline">Flavors True to You</div>
       <ul class="footer-nav">
         <li><a href="about.html">About</a></li>
@@ -218,7 +226,7 @@
         </svg>
         Instagram
       </a>
-      <p class="footer-copy">© 2025 Tailored Table. All rights reserved.</p>
+      <p class="footer-copy">© 2025 Tailored Taste. All rights reserved.</p>
     </footer>
 
   </div>
