@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import InvoiceTable from '@/components/admin/InvoiceTable';
 import { dbSelect } from '@/lib/db';
-import { formatCents } from '@/lib/money';
 import { isAdminSession } from '@/lib/session';
 import type { Invoice } from '@/lib/types';
 
@@ -12,15 +12,6 @@ const TABS = [
   { key: 'completed', label: 'Completed', statuses: ['paid'] },
   { key: 'void', label: 'Void', statuses: ['void'] },
 ] as const;
-
-function statusLabel(status: Invoice['status']): string {
-  return status === 'deposit_paid' ? 'Deposit Paid' : status.charAt(0).toUpperCase() + status.slice(1);
-}
-
-function fmtDate(value: string | null): string {
-  if (!value) return '—';
-  return new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-}
 
 export default async function AdminDashboard({
   searchParams,
@@ -75,42 +66,7 @@ export default async function AdminDashboard({
             )}
           </p>
         ) : (
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Customer</th>
-                <th>Total</th>
-                <th>Paid</th>
-                <th>Deposit</th>
-                <th>Due</th>
-                <th>Status</th>
-                <th>Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map(inv => (
-                <tr key={inv.id}>
-                  <td>
-                    <Link href={`/admin/invoices/${inv.id}`}>#{inv.invoice_number}</Link>
-                  </td>
-                  <td>
-                    {inv.customer_name}
-                    <br />
-                    <span style={{ color: 'var(--warm-gray)', fontSize: '0.9rem' }}>{inv.customer_email}</span>
-                  </td>
-                  <td>{formatCents(inv.total_cents, inv.currency)}</td>
-                  <td>{inv.amount_paid_cents > 0 ? formatCents(inv.amount_paid_cents, inv.currency) : '—'}</td>
-                  <td>{inv.deposit_cents ? formatCents(inv.deposit_cents, inv.currency) : '—'}</td>
-                  <td>{fmtDate(inv.due_date)}</td>
-                  <td>
-                    <span className={`status-pill status-${inv.status}`}>{statusLabel(inv.status)}</span>
-                  </td>
-                  <td>{fmtDate(inv.created_at)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <InvoiceTable invoices={invoices} />
         )}
       </div>
     </>
