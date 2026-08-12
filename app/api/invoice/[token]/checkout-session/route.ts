@@ -60,7 +60,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
         ],
         metadata: { invoice_id: invoice.id, payment_type: type },
         payment_intent_data: { metadata: { invoice_id: invoice.id, payment_type: type } },
-        expires_at: Math.floor(Date.now() / 1000) + 24 * 60 * 60,
+        // No expires_at: the default is already 24h, and a second-precision
+        // timestamp here would break idempotency-key reuse within the same
+        // minute (same key + different params = Stripe idempotency_error).
       },
       // Absorbs double-clicks: same invoice+type within the same minute reuses
       // one session instead of creating several.
