@@ -46,7 +46,9 @@ export default async function AdminDashboard({
         <h1 className="admin-title">Invoices</h1>
       </div>
 
-      <nav className="admin-tabs">
+      {/* Deliberately a div: styles.css pins bare <nav> elements to the top
+          of the viewport for the marketing site's navigation bar. */}
+      <div className="admin-tabs">
         {TABS.map(t => (
           <Link
             key={t.key}
@@ -56,7 +58,7 @@ export default async function AdminDashboard({
             {t.label}
           </Link>
         ))}
-      </nav>
+      </div>
 
       <div className="admin-table-wrap">
         {invoices.length === 0 ? (
