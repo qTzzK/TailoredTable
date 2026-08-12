@@ -108,9 +108,8 @@ export function invoiceEmail(invoice: Invoice): { subject: string; html: string 
       : '';
 
   const html = wrap(`
-    <h2 style="font-size:20px;margin:0 0 6px;text-align:center;color:#2C2C2C;">Invoice #${invoice.invoice_number}</h2>
+    <h2 style="font-size:20px;margin:0 0 6px;text-align:center;color:#2C2C2C;">${invoice.description ? escapeHtml(invoice.description) : 'Invoice'}</h2>
     <p style="font-size:15px;text-align:center;margin:0 0 20px;color:#8A8178;">for ${escapeHtml(invoice.customer_name)}</p>
-    ${invoice.description ? `<p style="font-size:15px;text-align:center;margin:0 0 20px;">${escapeHtml(invoice.description)}</p>` : ''}
     <table style="width:100%;font-size:15px;border-collapse:collapse;margin-bottom:16px;">
       ${lineItemRows(invoice)}
       <tr>
@@ -126,7 +125,12 @@ export function invoiceEmail(invoice: Invoice): { subject: string; html: string 
     <p style="font-size:13px;color:#8A8178;text-align:center;margin:16px 0 0;">Payments are processed securely by Stripe.</p>
   `);
 
-  return { subject: `Invoice #${invoice.invoice_number} from Tailored Taste`, html };
+  return {
+    subject: invoice.description
+      ? `${invoice.description} — Invoice from Tailored Taste`
+      : 'Invoice from Tailored Taste',
+    html,
+  };
 }
 
 export function receiptEmail(
@@ -153,8 +157,8 @@ export function receiptEmail(
     <p style="font-size:15px;text-align:center;margin:0 0 20px;color:#8A8178;">Your ${label} has been received.</p>
     <table style="width:100%;font-size:15px;border-collapse:collapse;">
       <tr>
-        <td style="padding:8px 12px 8px 0;color:#8A8178;">Invoice</td>
-        <td style="padding:8px 0;text-align:right;">#${invoice.invoice_number}</td>
+        <td style="padding:8px 12px 8px 0;color:#8A8178;">For</td>
+        <td style="padding:8px 0;text-align:right;">${invoice.description ? escapeHtml(invoice.description) : 'Invoice'}</td>
       </tr>
       <tr>
         <td style="padding:8px 12px 8px 0;color:#8A8178;border-top:1px solid #EDE7DE;">Amount paid</td>
@@ -165,7 +169,12 @@ export function receiptEmail(
     <p style="font-size:13px;color:#8A8178;text-align:center;margin:20px 0 0;">You can view your invoice anytime at the link above. Payments are processed securely by Stripe.</p>
   `);
 
-  return { subject: `Receipt — Invoice #${invoice.invoice_number} from Tailored Taste`, html };
+  return {
+    subject: invoice.description
+      ? `Receipt — ${invoice.description} — Tailored Taste`
+      : 'Receipt from Tailored Taste',
+    html,
+  };
 }
 
 export function adminPaymentNotification(
@@ -179,7 +188,7 @@ export function adminPaymentNotification(
     <p style="font-size:15px;margin:0;text-align:center;">
       <strong>${escapeHtml(invoice.customer_name)}</strong> paid
       <strong>${formatCents(paidCents, invoice.currency)}</strong> (${paymentType})
-      on invoice #${invoice.invoice_number}.
+      on ${invoice.description ? `&quot;${escapeHtml(invoice.description)}&quot; (invoice #${invoice.invoice_number})` : `invoice #${invoice.invoice_number}`}.
     </p>
     <p style="font-size:14px;color:#8A8178;text-align:center;margin:12px 0 0;">
       ${remaining > 0 ? `Remaining balance: ${formatCents(remaining, invoice.currency)}` : 'Invoice is now paid in full.'}

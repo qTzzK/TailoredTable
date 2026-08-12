@@ -52,8 +52,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
               currency: invoice.currency,
               unit_amount: amount,
               product_data: {
-                name: `Invoice #${invoice.invoice_number} — ${PAY_LABEL[type]} — Tailored Taste`,
-                ...(invoice.description ? { description: invoice.description.slice(0, 500) } : {}),
+                // Customers see the invoice's description ("Italian Dinner"),
+                // not an internal invoice number.
+                name: invoice.description
+                  ? `${invoice.description.slice(0, 200)} — ${PAY_LABEL[type]} — Tailored Taste`
+                  : `${PAY_LABEL[type]} — Tailored Taste`,
               },
             },
           },
