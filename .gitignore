@@ -1,4 +1,18 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+
+# env
 .env
 .env.*
-node_modules/
+
+# vercel
 .vercel/
+
+# misc
+.expo/
+*.tsbuildinfo
+next-env.d.ts

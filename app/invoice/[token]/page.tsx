@@ -1,0 +1,203 @@
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import InvoicePayment, { type PayOption } from '@/components/InvoicePayment';
+import { dbSelect } from '@/lib/db';
+import { allowedPaymentTypes, getInvoiceByToken, paymentAmountCents } from '@/lib/invoices';
+import { formatCents } from '@/lib/money';
+import type { Payment } from '@/lib/types';
+
+export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Invoice | Tailored Taste',
+  robots: { index: false, follow: false },
+};
+
+function fmtDate(value: string | null): string | null {
+  if (!value) return null;
+  return new Date(value).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+const PAY_LABEL: Record<string, (amount: string) => string> = {
+  deposit: amount => `Pay Deposit (${amount})`,
+  full: amount => `Pay in Full (${amount})`,
+  balance: amount => `Pay Balance (${amount})`,
+};
+
+export default async function InvoicePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ token: string }>;
+  searchParams: Promise<{ session_id?: string }>;
+}) {
+  const { token } = await params;
+  const { session_id } = await searchParams;
+
+  const invoice = await getInvoiceByToken(token);
+  if (!invoice) notFound();
+
+  const brand = (
+    <div className="invoice-brand">
+      <span className="invoice-brand-name">Tailored Taste</span>
+      <span className="invoice-brand-tag">Flavors True to You</span>
+    </div>
+  );
+  const footer = (
+    <p className="invoice-footer">
+      Questions about this invoice? Reply to your email thread or reach out via{' '}
+      <a href="https://www.instagram.com/miaprivatechef" target="_blank" rel="noopener" style={{ color: 'var(--burgundy)' }}>
+        Instagram
+      </a>
+      .<br />
+      Payments are processed securely by Stripe.
+    </p>
+  );
+
+  // Void: nothing but the notice — no amounts, no payment UI.
+  if (invoice.status === 'void') {
+    return (
+      <div className="invoice-shell">
+        {brand}
+        <div className="invoice-card">
+          <div className="invoice-card-header">
+            <span className="invoice-number">Invoice #{invoice.invoice_number}</span>
+          </div>
+          <div className="invoice-status-note muted">
+            This invoice is no longer active. Please contact Tailored Taste with any questions.
+          </div>
+        </div>
+        {footer}
+      </div>
+    );
+  }
+
+  const options: PayOption[] = allowedPaymentTypes(invoice)
+    .map(type => ({
+      type: type as PayOption['type'],
+      label: PAY_LABEL[type](formatCents(paymentAmountCents(invoice, type), invoice.currency)),
+    }));
+
+  const remaining = invoice.total_cents - invoice.amount_paid_cents;
+  const dueDate = fmtDate(invoice.due_date);
+  const succeededPayments =
+    invoice.amount_paid_cents > 0
+      ? await dbSelect<Payment>(
+          'payments',
+          `invoice_id=eq.${invoice.id}&status=eq.succeeded&order=paid_at.asc`
+        )
+      : [];
+
+  return (
+    <div className="invoice-shell">
+      {brand}
+      <div className="invoice-card">
+        <div className="invoice-card-header">
+          <span className="invoice-number">Invoice #{invoice.invoice_number}</span>
+          <div className="invoice-meta">
+            Issued {fmtDate(invoice.created_at)}
+            {dueDate && (
+              <>
+                <br />
+                Due {dueDate}
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="invoice-billto">
+          <p className="admin-detail-label">Billed to</p>
+          <p className="admin-detail-value">
+            {invoice.customer_name}
+            <br />
+            <span style={{ color: 'var(--warm-gray)' }}>{invoice.customer_email}</span>
+          </p>
+          {invoice.description && <p className="admin-note">{invoice.description}</p>}
+        </div>
+
+        <table className="invoice-items">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th className="num">Qty</th>
+              <th className="num">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoice.line_items.map((item, i) => (
+              <tr key={i}>
+                <td>{item.description}</td>
+                <td className="num">{item.quantity}</td>
+                <td className="num">{formatCents(item.quantity * item.unit_amount_cents, invoice.currency)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="invoice-total-row">
+          <span>Total</span>
+          <span>{formatCents(invoice.total_cents, invoice.currency)}</span>
+        </div>
+        {invoice.amount_paid_cents > 0 && (
+          <>
+            <div className="invoice-subrow">
+              <span>Paid</span>
+              <span>−{formatCents(invoice.amount_paid_cents, invoice.currency)}</span>
+            </div>
+            <div className="invoice-subrow" style={{ fontWeight: 700, color: 'var(--charcoal)' }}>
+              <span>Balance due</span>
+              <span>{formatCents(Math.max(remaining, 0), invoice.currency)}</span>
+            </div>
+          </>
+        )}
+
+        {invoice.status === 'paid' ? (
+          <>
+            <div className="invoice-status-note success">✦ &nbsp;Paid in full — thank you!</div>
+            {succeededPayments.length > 0 && (
+              <table className="invoice-items" style={{ marginTop: '1.25rem' }}>
+                <thead>
+                  <tr>
+                    <th>Payment</th>
+                    <th className="num">Date</th>
+                    <th className="num">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {succeededPayments.map(p => (
+                    <tr key={p.id}>
+                      <td>{p.payment_type === 'manual' ? 'payment' : p.payment_type}</td>
+                      <td className="num">{fmtDate(p.paid_at ?? p.created_at)}</td>
+                      <td className="num">{formatCents(p.amount_cents, invoice.currency)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </>
+        ) : (
+          <>
+            {invoice.status === 'deposit_paid' && (
+              <div className="invoice-status-note success">
+                ✦ &nbsp;Deposit of {formatCents(invoice.amount_paid_cents, invoice.currency)} received — thank you!
+              </div>
+            )}
+            {invoice.deposit_cents && invoice.status !== 'deposit_paid' && (
+              <div className="invoice-status-note muted">
+                A deposit of {formatCents(invoice.deposit_cents, invoice.currency)} reserves your date — or pay in full
+                below.
+              </div>
+            )}
+            <InvoicePayment token={invoice.token} options={options} returnedSessionId={session_id} />
+          </>
+        )}
+      </div>
+      {footer}
+    </div>
+  );
+}
