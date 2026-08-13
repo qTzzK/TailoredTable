@@ -185,7 +185,8 @@ export default function InvoiceForm() {
                 checked={item.tbd}
                 onChange={e => updateItem(i, { tbd: e.target.checked, price: '' })}
               />
-              TBD
+              <span className="line-item-switch" />
+              <span className="line-item-tbd-text">TBD</span>
             </label>
             {item.tbd ? (
               <input
