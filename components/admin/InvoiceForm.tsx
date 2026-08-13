@@ -210,12 +210,19 @@ export default function InvoiceForm() {
                 onChange={e => updateItem(i, { price: e.target.value })}
               />
             )}
+            {/* The form always needs at least one row, so on the last one the
+                × clears the fields instead of removing it — a disabled button
+                just reads as broken when you are trying to start over. */}
             <button
               type="button"
               className="line-item-remove"
-              aria-label="Remove line item"
-              disabled={items.length === 1}
-              onClick={() => setItems(prev => prev.filter((_, idx) => idx !== i))}
+              aria-label={items.length === 1 ? 'Clear line item' : 'Remove line item'}
+              title={items.length === 1 ? 'Clear this line item' : 'Remove this line item'}
+              onClick={() =>
+                setItems(prev =>
+                  prev.length === 1 ? [emptyItem()] : prev.filter((_, idx) => idx !== i)
+                )
+              }
             >
               ×
             </button>
