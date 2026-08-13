@@ -493,6 +493,28 @@ input[type='radio'] {
   .line-item-switch::after { transition: none; }
 }
 
+/* ---------------- PAYMENTS: STRIPE VERIFICATION ---------------- */
+
+.payment-stripe-link {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.66rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--burgundy);
+  white-space: nowrap;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.18s ease;
+}
+
+.payment-stripe-link:hover { border-bottom-color: var(--burgundy); }
+
+.payment-offline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--warm-gray);
+}
+
 .price-item-control {
   display: flex;
   flex-direction: column;

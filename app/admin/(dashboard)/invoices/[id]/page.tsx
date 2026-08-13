@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import InvoiceActions from '@/components/admin/InvoiceActions';
+import { StripeCell } from '@/components/admin/PaymentsTable';
 import PriceItemControl from '@/components/admin/PriceItemControl';
 import { dbSelect } from '@/lib/db';
 import { siteUrl } from '@/lib/env';
 import { getInvoiceById } from '@/lib/invoices';
 import { formatCents } from '@/lib/money';
 import { isAdminSession } from '@/lib/session';
+import { stripeDashboardBase } from '@/lib/stripe-dashboard';
 import { balanceDueDate } from '@/lib/terms';
 import { hasUnpricedItems, lineAmountCents } from '@/lib/types';
 import type { Payment, TermsAcceptance } from '@/lib/types';
@@ -209,6 +211,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 <th>Type</th>
                 <th>Amount</th>
                 <th>Status</th>
+                <th>Verify</th>
               </tr>
             </thead>
             <tbody>
@@ -218,6 +221,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                   <td>{p.payment_type}</td>
                   <td>{formatCents(p.amount_cents, invoice.currency)}</td>
                   <td>{p.status}</td>
+                  <td>
+                    <StripeCell payment={p} stripeBase={stripeDashboardBase()} />
+                  </td>
                 </tr>
               ))}
             </tbody>
