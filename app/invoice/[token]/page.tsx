@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import InvoicePayment, { type PayOption } from '@/components/InvoicePayment';
+import InvoiceTerms from '@/components/InvoiceTerms';
 import { dbSelect } from '@/lib/db';
 import { allowedPaymentTypes, getInvoiceByToken, paymentAmountCents } from '@/lib/invoices';
 import { formatCents } from '@/lib/money';
@@ -118,27 +119,7 @@ export default async function InvoicePage({
         </div>
       )}
 
-      <section className="invoice-terms" aria-labelledby="invoice-terms-heading">
-        <div className="invoice-terms-head">
-          <h2 id="invoice-terms-heading" className="invoice-terms-title">Service Terms</h2>
-          <span className="invoice-terms-version">v{terms.version}</span>
-        </div>
-        <p className="invoice-terms-intro">{terms.intro}</p>
-        <dl className="invoice-terms-list">
-          {terms.clauses.map(clause => (
-            <div className="invoice-terms-clause" key={clause.id}>
-              <dt>{clause.title}</dt>
-              <dd>{clause.body}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="invoice-terms-closing">
-          {terms.closing}{' '}
-          <a href="/terms" target="_blank" rel="noopener" className="invoice-terms-link">
-            Full terms
-          </a>
-        </p>
-      </section>
+      <InvoiceTerms terms={terms} />
     </>
   );
 

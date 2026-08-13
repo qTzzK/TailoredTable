@@ -135,6 +135,181 @@ input[type='radio'] {
 
 .invoice-terms-link { color: var(--burgundy); }
 
+/* Compact on-invoice summary: what the terms cover, without the full prose.
+   The clause bodies themselves live in the dialog below. */
+.invoice-terms-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.invoice-terms-topics li {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  color: var(--charcoal);
+  background: var(--off-white);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 0.18rem 0.65rem;
+}
+
+.invoice-terms-open {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.68rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--burgundy);
+  background: none;
+  border: 1px solid var(--burgundy);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.invoice-terms-open:hover {
+  background: var(--burgundy);
+  color: var(--off-white);
+}
+
+/* ---------------- SERVICE TERMS DIALOG ---------------- */
+
+/* The <dialog> element is only the positioning shell — it carries no chrome so
+   the panel inside can own the border, background and scrolling. */
+/* Deliberately viewport-sized rather than content-sized: a dialog box only as
+   wide as its panel never receives the clicks that land beside it, so
+   click-outside-to-close silently does nothing. Filling the viewport and
+   centring the panel inside makes every outside click hit the dialog itself. */
+.invoice-terms-dialog {
+  padding: 1rem;
+  border: none;
+  background: transparent;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  color: var(--charcoal);
+}
+
+/* Only when open — the UA's `display: none` has to keep working when closed.
+   Flex rather than grid on purpose: an auto-sized grid row grows to the full
+   content height, so the panel's `max-height: 100%` would resolve against the
+   overflowing row and never clamp. A flex container's height is definite. */
+.invoice-terms-dialog[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.invoice-terms-dialog::backdrop {
+  background: rgba(44, 44, 44, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.invoice-terms-dialog-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(640px, 100%);
+  max-height: 100%;
+  background: var(--off-white);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 18px 48px rgba(44, 44, 44, 0.22);
+}
+
+.invoice-terms-dialog-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 1.1rem 1.35rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--cream);
+}
+
+/* Pushes the close button to the far edge, whatever the version string. */
+.invoice-terms-dialog-head .invoice-terms-version { margin-right: auto; }
+
+.invoice-terms-close {
+  background: none;
+  border: none;
+  color: var(--warm-gray);
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0 0.2rem;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.invoice-terms-close:hover { color: var(--burgundy); }
+
+/* min-height: 0 so this can shrink below its content inside the column flex
+   panel — without it the head and foot get pushed off a short viewport. */
+.invoice-terms-dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.15rem 1.35rem;
+  overscroll-behavior: contain;
+}
+
+.invoice-terms-dialog-body .invoice-terms-closing { border-top-color: var(--border-color); }
+
+.invoice-terms-dialog-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.85rem 1.35rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--cream);
+}
+
+/* On screen the terms live in a dialog, which a closed <dialog> hides from the
+   printed page entirely. The terms are part of the invoice record, so printing
+   or saving as PDF unfolds them back inline. */
+@media print {
+  .invoice-terms-topics,
+  .invoice-terms-open,
+  .invoice-terms-close,
+  .invoice-terms-dialog-head,
+  .invoice-terms-dialog-foot,
+  /* The section already prints an intro directly above; the dialog carries its
+     own copy for the on-screen modal, and unfolded they would print twice. */
+  .invoice-terms-dialog-body .invoice-terms-intro {
+    display: none;
+  }
+
+  .invoice-terms-dialog {
+    display: block;
+    position: static;
+    width: auto;
+    max-width: none;
+    height: auto;
+    max-height: none;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .invoice-terms-dialog::backdrop { background: none; }
+
+  .invoice-terms-dialog-panel {
+    display: block;
+    width: auto;
+    max-height: none;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .invoice-terms-dialog-body {
+    overflow: visible;
+    padding: 0;
+  }
+
+  .invoice-terms-clause { break-inside: avoid; }
+}
+
 /* ---------------- TERMS ACCEPTANCE GATE ---------------- */
 
 .invoice-terms-accept {
@@ -150,6 +325,11 @@ input[type='radio'] {
   font-size: 1.03rem;
   line-height: 1.5;
   color: var(--charcoal);
+  /* The bare `label` rule in styles.css uppercases and letterspaces every
+     label on the site. That is right for form field labels, but this one is a
+     sentence the customer has to actually read before agreeing to it. */
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 /* Sizing, appearance and accent come from the checkbox reset at the top of
