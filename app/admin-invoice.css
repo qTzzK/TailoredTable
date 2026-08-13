@@ -465,7 +465,40 @@
   .admin-main { padding: 1.5rem 1rem 4rem; }
   .admin-header { padding: 1rem 1.25rem; }
   .invoice-card { padding: 1.75rem 1.25rem; }
-  .line-item-row { grid-template-columns: 1fr 60px 44px 110px 32px; }
+
+  /* 2rem of side padding costs 64px of a 390px screen — most of what the
+     description input needs. */
+  .admin-card { padding: 1.35rem 1.15rem; }
+
+  /* Five columns cannot share a phone's width: the four fixed ones plus their
+     gaps eat everything and the description collapses to a few characters.
+     The description takes its own full-width row and quantity, the TBD toggle,
+     price and remove share the line beneath it. */
+  .line-item-row {
+    grid-template-columns: 74px 54px 1fr 34px;
+    gap: 0.5rem;
+    padding-bottom: 0.85rem;
+    margin-bottom: 0.85rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  /* Description takes the first three columns of row one; the remove button is
+     pinned to the fourth and spans both rows so it sits centred against the
+     pair rather than hanging off the second line. Quantity, the TBD toggle and
+     price then auto-flow into row two around it. */
+  .line-item-row > :first-child { grid-column: 1 / 4; }
+
+  .line-item-row > :last-child {
+    grid-column: 4;
+    grid-row: 1 / 3;
+    align-self: center;
+  }
+
+  /* The last row sits directly above "+ Add Item" and needs no divider. */
+  .line-item-row:has(+ button) {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
 }
 
 .admin-row-link { cursor: pointer; }
