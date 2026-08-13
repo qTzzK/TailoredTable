@@ -1,0 +1,342 @@
+/* ==================================================================
+   TBD LINE ITEMS · NOTES · SERVICE TERMS
+   Extends admin-invoice.css and styles.css; tokens only, no new colors.
+   ================================================================== */
+
+/* ---------------- PUBLIC INVOICE: dates, notes, TBD ---------------- */
+
+.invoice-meta-strong { color: var(--charcoal); font-weight: 600; }
+
+.invoice-item-note {
+  display: block;
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--warm-gray);
+  margin-top: 0.15rem;
+}
+
+.invoice-tbd {
+  font-style: italic;
+  color: var(--warm-gray);
+  letter-spacing: 1px;
+}
+
+.invoice-notes {
+  background: var(--cream);
+  border: 1px solid var(--border-color);
+  padding: 1.1rem 1.25rem;
+  margin-top: 1.75rem;
+}
+
+.invoice-notes-body {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.08rem;
+  color: var(--charcoal);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+
+/* ---------------- SERVICE TERMS BLOCK ---------------- */
+
+.invoice-terms {
+  margin-top: 1.75rem;
+  border: 1px solid var(--border-color);
+  background: var(--cream);
+  padding: 1.25rem 1.35rem;
+}
+
+.invoice-terms-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+
+.invoice-terms-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--burgundy);
+  font-weight: 700;
+  margin: 0;
+}
+
+.invoice-terms-version {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.82rem;
+  color: var(--warm-gray);
+}
+
+.invoice-terms-intro {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--warm-gray);
+  margin: 0 0 0.85rem;
+}
+
+.invoice-terms-list { margin: 0; }
+
+.invoice-terms-clause { margin-bottom: 0.85rem; }
+.invoice-terms-clause:last-child { margin-bottom: 0; }
+
+.invoice-terms-clause dt {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--charcoal);
+  margin-bottom: 0.2rem;
+}
+
+.invoice-terms-clause dd {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--charcoal);
+  margin: 0;
+}
+
+.invoice-terms-closing {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  color: var(--warm-gray);
+  margin: 1rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.invoice-terms-link { color: var(--burgundy); }
+
+/* ---------------- TERMS ACCEPTANCE GATE ---------------- */
+
+.invoice-terms-accept {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  margin-top: 1.5rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border-color);
+  background: var(--off-white);
+  cursor: pointer;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.03rem;
+  line-height: 1.5;
+  color: var(--charcoal);
+}
+
+.invoice-terms-accept input {
+  width: auto;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+  accent-color: var(--burgundy);
+}
+
+.invoice-terms-accept:has(input:checked) {
+  border-color: var(--border-green);
+  background: var(--green-light);
+}
+
+.invoice-terms-accept:focus-within {
+  outline: 2px solid var(--burgundy);
+  outline-offset: 2px;
+}
+
+.invoice-terms-prior {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  color: var(--warm-gray);
+  margin: 0.5rem 0 0;
+  text-align: center;
+}
+
+.invoice-pay-hint {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--warm-gray);
+  text-align: center;
+  margin: 0.75rem 0 0;
+}
+
+.btn:disabled,
+.btn:disabled:hover,
+.btn-green:disabled:hover {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ---------------- ADMIN: notes, TBD, pricing control ---------------- */
+
+.admin-form textarea {
+  width: 100%;
+  min-height: 130px;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border-color);
+  background: var(--off-white);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.02rem;
+  color: var(--charcoal);
+  resize: vertical;
+}
+
+.admin-form .form-hint,
+.form-hint {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--warm-gray);
+  margin: 0.4rem 0 0;
+  line-height: 1.5;
+}
+
+.admin-notes-preview {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  color: var(--charcoal);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  background: var(--cream);
+  border: 1px solid var(--border-color);
+}
+
+.line-item-tbd {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'Playfair Display', serif;
+  font-size: 0.68rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.line-item-tbd input {
+  width: auto;
+  margin: 0;
+  accent-color: var(--burgundy);
+}
+
+.price-item-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 260px;
+}
+
+.price-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.price-item-row input {
+  width: 100px;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border-color);
+  background: var(--off-white);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  color: var(--charcoal);
+}
+
+.price-item-qty {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.9rem;
+  color: var(--warm-gray);
+  white-space: nowrap;
+}
+
+.price-item-notify {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.92rem;
+  color: var(--warm-gray);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.price-item-notify input { width: auto; margin: 0; accent-color: var(--burgundy); }
+
+/* ---------------- PUBLIC /terms PAGE ---------------- */
+
+.terms-page {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--off-white);
+  border: 1px solid var(--border-color);
+  padding: 3rem 2.75rem;
+}
+
+.terms-intro {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--warm-gray);
+  line-height: 1.7;
+  margin: 0 0 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.terms-list { margin: 0; }
+
+.terms-clause { margin-bottom: 2rem; }
+.terms-clause:last-child { margin-bottom: 0; }
+
+.terms-clause dt {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--charcoal);
+  margin-bottom: 0.5rem;
+}
+
+.terms-clause dd {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: var(--charcoal);
+  margin: 0;
+}
+
+.terms-closing {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--charcoal);
+  line-height: 1.7;
+  margin: 2.5rem 0 0;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.terms-meta {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.92rem;
+  color: var(--warm-gray);
+  margin: 1.25rem 0 0;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 640px) {
+  .invoice-terms-head { flex-direction: column; gap: 0.2rem; }
+  .line-item-row { grid-template-columns: 1fr 60px 44px 110px 32px; }
+  .terms-page { padding: 2rem 1.35rem; }
+  .price-item-control { min-width: 0; }
+}

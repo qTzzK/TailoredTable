@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { dbInsert, dbUpdate } from '@/lib/db';
-import { getInvoiceById } from '@/lib/invoices';
+import { getInvoiceById, hasUnpricedItems } from '@/lib/invoices';
 import { rejectCrossSite, requireAdmin } from '@/lib/session';
 
 // Settles the remaining balance offline (cash, Zelle, etc.).
@@ -21,12 +21,26 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: 'This invoice cannot be marked paid.' }, { status: 409 });
   }
 
+  // Marking paid while items are unpriced would silently write off the
+  // groceries — the total is not final yet.
+  if (hasUnpricedItems(invoice)) {
+    return NextResponse.json(
+      { error: 'Price or waive the TBD items before marking this paid.' },
+      { status: 409 }
+    );
+  }
+
   const now = new Date().toISOString();
 
   // Atomic status guard first — a concurrent Stripe settlement loses no money.
+  // The total_cents term is not optional: a reprice landing between this
+  // route's read and its write changes neither status nor amount_paid_cents,
+  // so without it we would write the stale, lower total and flip to 'paid'.
   const updated = await dbUpdate(
     'invoices',
-    `id=eq.${invoice.id}&status=in.("draft","sent","deposit_paid")&amount_paid_cents=eq.${invoice.amount_paid_cents}`,
+    `id=eq.${invoice.id}&status=in.("draft","sent","deposit_paid")` +
+      `&amount_paid_cents=eq.${invoice.amount_paid_cents}` +
+      `&total_cents=eq.${invoice.total_cents}`,
     { status: 'paid', amount_paid_cents: invoice.total_cents, paid_at: now, updated_at: now }
   );
   if (updated.length === 0) {

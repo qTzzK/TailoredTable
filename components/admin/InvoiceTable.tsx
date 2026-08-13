@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatCents } from '@/lib/money';
+import { hasUnpricedItems } from '@/lib/types';
 import type { Invoice } from '@/lib/types';
 
 function statusLabel(status: Invoice['status']): string {
@@ -45,7 +46,10 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
               <br />
               <span style={{ color: 'var(--warm-gray)', fontSize: '0.9rem' }}>{inv.customer_email}</span>
             </td>
-            <td>{formatCents(inv.total_cents, inv.currency)}</td>
+            <td>
+              {formatCents(inv.total_cents, inv.currency)}
+              {hasUnpricedItems(inv) && <span style={{ color: 'var(--warm-gray)' }}> + TBD</span>}
+            </td>
             <td>{inv.amount_paid_cents > 0 ? formatCents(inv.amount_paid_cents, inv.currency) : '—'}</td>
             <td>{inv.deposit_cents ? formatCents(inv.deposit_cents, inv.currency) : '—'}</td>
             <td>{fmtDate(inv.due_date)}</td>

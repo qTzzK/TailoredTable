@@ -4,6 +4,8 @@ import InvoicePayment, { type PayOption } from '@/components/InvoicePayment';
 import { dbSelect } from '@/lib/db';
 import { allowedPaymentTypes, getInvoiceByToken, paymentAmountCents } from '@/lib/invoices';
 import { formatCents } from '@/lib/money';
+import { buildTerms } from '@/lib/terms';
+import { hasUnpricedItems, lineAmountCents } from '@/lib/types';
 import type { Payment } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -77,21 +79,53 @@ export default async function InvoicePage({
     );
   }
 
-  const options: PayOption[] = allowedPaymentTypes(invoice)
-    .map(type => ({
-      type: type as PayOption['type'],
-      label: PAY_LABEL[type](formatCents(paymentAmountCents(invoice, type), invoice.currency)),
-    }));
+  const terms = buildTerms(invoice);
+  const unpriced = hasUnpricedItems(invoice);
+  const unpricedCount = invoice.line_items.filter(i => i.pricing === 'tbd').length;
+
+  const options: PayOption[] = allowedPaymentTypes(invoice).map(type => ({
+    type: type as PayOption['type'],
+    label: PAY_LABEL[type](formatCents(paymentAmountCents(invoice, type), invoice.currency)),
+  }));
 
   const remaining = invoice.total_cents - invoice.amount_paid_cents;
-  const dueDate = fmtDate(invoice.due_date);
   const succeededPayments =
     invoice.amount_paid_cents > 0
-      ? await dbSelect<Payment>(
-          'payments',
-          `invoice_id=eq.${invoice.id}&status=eq.succeeded&order=paid_at.asc`
-        )
+      ? await dbSelect<Payment>('payments', `invoice_id=eq.${invoice.id}&status=eq.succeeded&order=paid_at.asc`)
       : [];
+
+  const notesAndTerms = (
+    <>
+      {invoice.notes && (
+        <div className="invoice-notes">
+          <p className="admin-detail-label">A note from your chef</p>
+          <p className="invoice-notes-body">{invoice.notes}</p>
+        </div>
+      )}
+
+      <section className="invoice-terms" aria-labelledby="invoice-terms-heading">
+        <div className="invoice-terms-head">
+          <h2 id="invoice-terms-heading" className="invoice-terms-title">Service Terms</h2>
+          <span className="invoice-terms-version">v{terms.version}</span>
+        </div>
+        <p className="invoice-terms-intro">{terms.intro}</p>
+        <dl className="invoice-terms-list">
+          {terms.clauses.map(clause => (
+            <div className="invoice-terms-clause" key={clause.id}>
+              <dt>{clause.title}</dt>
+              <dd>{clause.body}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="invoice-terms-closing">
+          {terms.closing}{' '}
+          <a href="/terms" target="_blank" rel="noopener" className="invoice-terms-link">
+            Full terms
+          </a>
+        </p>
+      </section>
+    </>
+  );
 
   return (
     <div className="invoice-shell">
@@ -101,10 +135,19 @@ export default async function InvoicePage({
           <span className="invoice-number">Invoice #{invoice.invoice_number}</span>
           <div className="invoice-meta">
             Issued {fmtDate(invoice.created_at)}
-            {dueDate && (
+            {terms.serviceDateLabel && (
               <>
                 <br />
-                Due {dueDate}
+                <span className="invoice-meta-strong">
+                  Service {terms.serviceDateLabel}
+                  {invoice.service_time ? ` · ${invoice.service_time}` : ''}
+                </span>
+              </>
+            )}
+            {terms.balanceDueLabel && invoice.status !== 'paid' && (
+              <>
+                <br />
+                Balance due {terms.balanceDueLabel}
               </>
             )}
           </div>
@@ -129,20 +172,43 @@ export default async function InvoicePage({
             </tr>
           </thead>
           <tbody>
-            {invoice.line_items.map((item, i) => (
-              <tr key={i}>
-                <td>{item.description}</td>
-                <td className="num">{item.quantity}</td>
-                <td className="num">{formatCents(item.quantity * item.unit_amount_cents, invoice.currency)}</td>
-              </tr>
-            ))}
+            {invoice.line_items.map((item, i) => {
+              const amount = lineAmountCents(item);
+              return (
+                <tr key={item.id ?? i}>
+                  <td>
+                    {item.description}
+                    {item.pricing === 'tbd' && item.tbd_note && (
+                      <span className="invoice-item-note">{item.tbd_note}</span>
+                    )}
+                    {item.pricing === 'waived' && <span className="invoice-item-note">not required</span>}
+                  </td>
+                  <td className="num">{item.quantity}</td>
+                  <td className="num">
+                    {amount === null ? (
+                      <span className="invoice-tbd">TBD</span>
+                    ) : (
+                      formatCents(amount, invoice.currency)
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
         <div className="invoice-total-row">
-          <span>Total</span>
+          <span>{unpriced ? 'Priced so far' : 'Total'}</span>
           <span>{formatCents(invoice.total_cents, invoice.currency)}</span>
         </div>
+        {unpriced && (
+          <div className="invoice-subrow">
+            <span>Still to be priced</span>
+            <span>
+              {unpricedCount} item{unpricedCount === 1 ? '' : 's'} — you&apos;ll be emailed
+            </span>
+          </div>
+        )}
         {invoice.amount_paid_cents > 0 && (
           <>
             <div className="invoice-subrow">
@@ -150,11 +216,13 @@ export default async function InvoicePage({
               <span>−{formatCents(invoice.amount_paid_cents, invoice.currency)}</span>
             </div>
             <div className="invoice-subrow" style={{ fontWeight: 700, color: 'var(--charcoal)' }}>
-              <span>Balance due</span>
+              <span>{unpriced ? 'Balance so far' : 'Balance due'}</span>
               <span>{formatCents(Math.max(remaining, 0), invoice.currency)}</span>
             </div>
           </>
         )}
+
+        {notesAndTerms}
 
         {invoice.status === 'paid' ? (
           <>
@@ -189,11 +257,32 @@ export default async function InvoicePage({
             )}
             {invoice.deposit_cents && invoice.status !== 'deposit_paid' && (
               <div className="invoice-status-note muted">
-                A deposit of {formatCents(invoice.deposit_cents, invoice.currency)} reserves your date — or pay in full
-                below.
+                A deposit of {formatCents(invoice.deposit_cents, invoice.currency)} reserves your date
+                {unpriced ? '.' : ' — or pay in full below.'}
               </div>
             )}
-            <InvoicePayment token={invoice.token} options={options} returnedSessionId={session_id} />
+            {options.length === 0 ? (
+              <div className="invoice-status-note muted">
+                Your final balance will be ready once your groceries are shopped — I&apos;ll email you as soon as
+                it&apos;s set. Payment is due 24 hours before your service.
+              </div>
+            ) : (
+              <InvoicePayment
+                token={invoice.token}
+                options={options}
+                returnedSessionId={session_id}
+                termsVersion={terms.version}
+                previouslyAcceptedOn={
+                  invoice.terms_accepted_at
+                    ? new Date(invoice.terms_accepted_at).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
+                    : null
+                }
+              />
+            )}
           </>
         )}
       </div>

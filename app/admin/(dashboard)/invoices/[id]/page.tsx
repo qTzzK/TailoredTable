@@ -1,12 +1,15 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import InvoiceActions from '@/components/admin/InvoiceActions';
+import PriceItemControl from '@/components/admin/PriceItemControl';
 import { dbSelect } from '@/lib/db';
 import { siteUrl } from '@/lib/env';
 import { getInvoiceById } from '@/lib/invoices';
 import { formatCents } from '@/lib/money';
 import { isAdminSession } from '@/lib/session';
-import type { Payment } from '@/lib/types';
+import { balanceDueDate } from '@/lib/terms';
+import { hasUnpricedItems, lineAmountCents } from '@/lib/types';
+import type { Payment, TermsAcceptance } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,8 +37,15 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   if (!invoice) notFound();
 
   const payments = await dbSelect<Payment>('payments', `invoice_id=eq.${invoice.id}&order=created_at.desc`);
+  const acceptances = await dbSelect<TermsAcceptance>(
+    'terms_acceptances',
+    `invoice_id=eq.${invoice.id}&order=accepted_at.desc`
+  );
   const invoiceUrl = `${siteUrl()}/invoice/${invoice.token}`;
   const remaining = invoice.total_cents - invoice.amount_paid_cents;
+  const unpriced = hasUnpricedItems(invoice);
+  const unpricedCount = invoice.line_items.filter(i => i.pricing === 'tbd').length;
+  const canPrice = invoice.status !== 'paid' && invoice.status !== 'void';
 
   return (
     <>
@@ -50,6 +60,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           ← All invoices
         </Link>
       </div>
+
+      {unpriced && (
+        <div className="admin-banner">
+          {unpricedCount} item{unpricedCount === 1 ? '' : 's'} still need{unpricedCount === 1 ? 's' : ''} a price.
+          Until you set it, the customer can only pay the deposit — they cannot pay their balance.
+        </div>
+      )}
 
       {invoice.last_email_status === 'skipped_no_api_key' && (
         <div className="admin-banner">
@@ -76,7 +93,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             <p className="admin-detail-value">{invoice.customer_email}</p>
           </div>
           <div>
-            <p className="admin-detail-label">Total</p>
+            <p className="admin-detail-label">{unpriced ? 'Priced so far' : 'Total'}</p>
             <p className="admin-detail-value">{formatCents(invoice.total_cents, invoice.currency)}</p>
           </div>
           <div>
@@ -95,8 +112,15 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             </p>
           </div>
           <div>
-            <p className="admin-detail-label">Due date</p>
-            <p className="admin-detail-value">{invoice.due_date ?? '—'}</p>
+            <p className="admin-detail-label">Service date</p>
+            <p className="admin-detail-value">
+              {invoice.service_date ?? '—'}
+              {invoice.service_time ? ` · ${invoice.service_time}` : ''}
+            </p>
+          </div>
+          <div>
+            <p className="admin-detail-label">Balance due</p>
+            <p className="admin-detail-value">{balanceDueDate(invoice) ?? '—'}</p>
           </div>
           <div>
             <p className="admin-detail-label">Created</p>
@@ -110,6 +134,12 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         {invoice.description && (
           <p className="admin-note" style={{ marginTop: '1.25rem' }}>{invoice.description}</p>
         )}
+        {invoice.notes && (
+          <div style={{ marginTop: '1.25rem' }}>
+            <p className="admin-detail-label">Note to customer</p>
+            <p className="admin-notes-preview">{invoice.notes}</p>
+          </div>
+        )}
       </div>
 
       <div className="admin-card">
@@ -121,17 +151,41 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               <th>Qty</th>
               <th>Unit</th>
               <th>Amount</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
-            {invoice.line_items.map((item, i) => (
-              <tr key={i}>
-                <td style={{ whiteSpace: 'normal' }}>{item.description}</td>
-                <td>{item.quantity}</td>
-                <td>{formatCents(item.unit_amount_cents, invoice.currency)}</td>
-                <td>{formatCents(item.quantity * item.unit_amount_cents, invoice.currency)}</td>
-              </tr>
-            ))}
+            {invoice.line_items.map((item, i) => {
+              const amount = lineAmountCents(item);
+              return (
+                <tr key={item.id ?? i}>
+                  <td style={{ whiteSpace: 'normal' }}>
+                    {item.description}
+                    {item.pricing === 'tbd' && item.tbd_note && (
+                      <span className="invoice-item-note">{item.tbd_note}</span>
+                    )}
+                    {item.pricing === 'waived' && <span className="invoice-item-note">waived — not required</span>}
+                  </td>
+                  <td>{item.quantity}</td>
+                  <td>{item.pricing === 'tbd' ? '—' : formatCents(item.unit_amount_cents ?? 0, invoice.currency)}</td>
+                  <td>{amount === null ? 'TBD' : formatCents(amount, invoice.currency)}</td>
+                  <td>
+                    {(item.pricing === 'tbd' || item.origin === 'tbd') && canPrice && item.id && (
+                      <PriceItemControl
+                        invoiceId={invoice.id}
+                        itemId={item.id}
+                        description={item.description}
+                        quantity={item.quantity}
+                        currentCents={item.unit_amount_cents}
+                        alreadyPriced={Boolean(item.priced_at)}
+                        expectedUpdatedAt={invoice.updated_at}
+                        defaultNotify={invoice.status !== 'draft'}
+                      />
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -169,6 +223,40 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             </tbody>
           </table>
         )}
+      </div>
+
+      <div className="admin-card">
+        <h2>Terms Acceptance</h2>
+        {acceptances.length === 0 ? (
+          <p className="admin-empty" style={{ padding: '1rem 0' }}>
+            Not accepted yet — the customer accepts when they start a payment.
+          </p>
+        ) : (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Accepted</th>
+                <th>For</th>
+                <th>Version</th>
+                <th>IP</th>
+              </tr>
+            </thead>
+            <tbody>
+              {acceptances.map(a => (
+                <tr key={a.id}>
+                  <td>{fmtDateTime(a.accepted_at)}</td>
+                  <td>{a.payment_type}</td>
+                  <td>{a.terms_version}</td>
+                  <td>{a.ip ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        <p className="admin-note">
+          Each row stores the exact terms text and amounts the customer saw before paying. If you ever get a
+          dispute, paste that text into the Stripe evidence form under &quot;cancellation policy disclosure&quot;.
+        </p>
       </div>
     </>
   );

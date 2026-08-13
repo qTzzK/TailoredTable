@@ -1,7 +1,7 @@
 import type Stripe from 'stripe';
 import { NextResponse } from 'next/server';
-import { dbUpdate } from '@/lib/db';
-import { adminPaymentNotification, receiptEmail, sendEmail } from '@/lib/email';
+import { dbSelect, dbUpdate } from '@/lib/db';
+import { adminPaymentNotification, disputeAlertEmail, receiptEmail, sendEmail } from '@/lib/email';
 import { requireEnv } from '@/lib/env';
 import { getInvoiceById } from '@/lib/invoices';
 import { stripe } from '@/lib/stripe';
@@ -43,6 +43,10 @@ export async function POST(req: Request) {
       case 'checkout.session.expired':
         await markPayment(event.data.object.id, 'expired');
         break;
+      case 'charge.dispute.created':
+      case 'charge.dispute.closed':
+        await alertDispute(event.data.object, event.type);
+        break;
       default:
         break;
     }
@@ -57,6 +61,30 @@ export async function POST(req: Request) {
 
 async function markPayment(sessionId: string, status: 'failed' | 'expired'): Promise<void> {
   await dbUpdate('payments', `stripe_session_id=eq.${sessionId}&status=eq.pending`, { status });
+}
+
+// Disputes have a hard evidence deadline (7-21 days) and missing it is an
+// automatic total loss, so the only thing that matters here is that the chef
+// finds out within minutes. Stripe's dashboard stays the system of record.
+async function alertDispute(dispute: Stripe.Dispute, eventType: string): Promise<void> {
+  const pi =
+    typeof dispute.payment_intent === 'string' ? dispute.payment_intent : dispute.payment_intent?.id ?? null;
+  const [payment] = pi
+    ? await dbSelect<Payment>('payments', `stripe_payment_intent_id=eq.${pi}&limit=1`)
+    : [];
+  const invoice = payment ? await getInvoiceById(payment.invoice_id) : null;
+  const dueBy = dispute.evidence_details?.due_by
+    ? new Date(dispute.evidence_details.due_by * 1000).toISOString().slice(0, 16).replace('T', ' ')
+    : 'ASAP';
+
+  console.error(
+    `DISPUTE ${eventType} ${dispute.id} ${dispute.amount} ${dispute.reason} ${dispute.status} due_by=${dueBy}`
+  );
+
+  const adminTo = process.env.CONTACT_TO;
+  if (!adminTo) return;
+  const note = disputeAlertEmail(dispute, invoice, dueBy, eventType);
+  await sendEmail({ to: adminTo, subject: note.subject, html: note.html });
 }
 
 async function settle(session: Stripe.Checkout.Session): Promise<void> {
@@ -83,6 +111,17 @@ async function settle(session: Stripe.Checkout.Session): Promise<void> {
       console.error(`Webhook: invoice ${payment.invoice_id} not found for payment ${payment.id}`);
       return;
     }
+    // The cap below discards anything above the total. Say so loudly — this
+    // is the difference between quietly keeping money and knowing a refund
+    // is owed (e.g. a customer who paid a deposit and then paid in full).
+    const overpaidBy = current.amount_paid_cents + payment.amount_cents - current.total_cents;
+    if (overpaidBy > 0) {
+      console.error(
+        `OVERPAYMENT invoice=${current.id} #${current.invoice_number} payment=${payment.id} ` +
+          `excess_cents=${overpaidBy} — a refund is owed`
+      );
+    }
+
     const newPaid = Math.min(current.amount_paid_cents + payment.amount_cents, current.total_cents);
     const fullyPaid = newPaid >= current.total_cents;
     const updated = await dbUpdate<Invoice>(

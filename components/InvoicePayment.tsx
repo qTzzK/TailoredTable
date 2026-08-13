@@ -13,11 +13,19 @@ interface Props {
   token: string;
   options: PayOption[];
   returnedSessionId?: string;
+  termsVersion: string;
+  previouslyAcceptedOn?: string | null;
 }
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
-export default function InvoicePayment({ token, options, returnedSessionId }: Props) {
+export default function InvoicePayment({
+  token,
+  options,
+  returnedSessionId,
+  termsVersion,
+  previouslyAcceptedOn,
+}: Props) {
   const router = useRouter();
   const mountRef = useRef<HTMLDivElement>(null);
   const checkoutRef = useRef<StripeEmbeddedCheckout | null>(null);
@@ -25,6 +33,9 @@ export default function InvoicePayment({ token, options, returnedSessionId }: Pr
   const [error, setError] = useState<string | null>(null);
   const [paidJustNow, setPaidJustNow] = useState(false);
   const [checkingReturn, setCheckingReturn] = useState(Boolean(returnedSessionId));
+  // Never pre-checked and never persisted: each payment needs its own
+  // deliberate acceptance, which is what makes the record meaningful.
+  const [accepted, setAccepted] = useState(false);
 
   // Returning from checkout: confirm the session's outcome, then refresh so
   // the server re-renders from (webhook-updated) DB state.
@@ -40,7 +51,6 @@ export default function InvoicePayment({ token, options, returnedSessionId }: Pr
         if (cancelled) return;
         if (res.ok && data?.status === 'complete') {
           setPaidJustNow(true);
-          // Give the webhook a moment, then re-render from the database.
           setTimeout(() => router.refresh(), 2500);
         }
       } catch {
@@ -61,13 +71,14 @@ export default function InvoicePayment({ token, options, returnedSessionId }: Pr
   }, []);
 
   async function startCheckout(option: PayOption) {
+    if (!accepted) return;
     setError(null);
     setSelected(option);
     try {
       const res = await fetch(`/api/invoice/${encodeURIComponent(token)}/checkout-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payment_type: option.type }),
+        body: JSON.stringify({ payment_type: option.type, accept_terms: true, terms_version: termsVersion }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.clientSecret) {
@@ -112,18 +123,40 @@ export default function InvoicePayment({ token, options, returnedSessionId }: Pr
   return (
     <div>
       {!selected && (
-        <div className="invoice-pay-actions">
-          {options.map(option => (
-            <button
-              key={option.type}
-              type="button"
-              className={option.type === 'deposit' ? 'btn btn-green' : 'btn btn-primary'}
-              onClick={() => startCheckout(option)}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+        <>
+          <label className="invoice-terms-accept">
+            <input
+              type="checkbox"
+              checked={accepted}
+              onChange={e => setAccepted(e.target.checked)}
+              aria-describedby="invoice-terms-heading"
+            />
+            <span>
+              I&apos;ve read and agree to the service terms above, including the deposit and cancellation policy.
+            </span>
+          </label>
+          {previouslyAcceptedOn && (
+            <p className="invoice-terms-prior">You accepted these terms on {previouslyAcceptedOn}.</p>
+          )}
+          <div className="invoice-pay-actions">
+            {options.map(option => (
+              <button
+                key={option.type}
+                type="button"
+                className={option.type === 'deposit' ? 'btn btn-green' : 'btn btn-primary'}
+                disabled={!accepted}
+                onClick={() => startCheckout(option)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          {!accepted && (
+            <p className="invoice-pay-hint" aria-live="polite">
+              Check the box above to continue to payment.
+            </p>
+          )}
+        </>
       )}
       {error && (
         <p className="invoice-status-note muted" role="alert">
