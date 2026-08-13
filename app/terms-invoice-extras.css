@@ -3,6 +3,28 @@
    Extends admin-invoice.css and styles.css; tokens only, no new colors.
    ================================================================== */
 
+/* styles.css styles EVERY input as a text field — `appearance: none` plus
+   padding, a cream background and a border. On a checkbox that erases the
+   native glyph, leaving a blank rectangle that never appears to tick. Revert
+   to the user-agent rendering, then brand it. Must stay ahead of the
+   component rules below, which only reset `width`. */
+input[type='checkbox'],
+input[type='radio'] {
+  -webkit-appearance: revert;
+  appearance: revert;
+  padding: revert;
+  border: revert;
+  background: revert;
+  border-radius: revert;
+  font-size: revert;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+  accent-color: var(--burgundy);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
 /* ---------------- PUBLIC INVOICE: dates, notes, TBD ---------------- */
 
 .invoice-meta-strong { color: var(--charcoal); font-weight: 600; }
@@ -130,11 +152,10 @@
   color: var(--charcoal);
 }
 
+/* Sizing, appearance and accent come from the checkbox reset at the top of
+   this file; only the optical alignment against the first text line is local. */
 .invoice-terms-accept input {
-  width: auto;
   margin-top: 0.2rem;
-  flex-shrink: 0;
-  accent-color: var(--burgundy);
 }
 
 .invoice-terms-accept:has(input:checked) {
@@ -223,12 +244,6 @@
   white-space: nowrap;
 }
 
-.line-item-tbd input {
-  width: auto;
-  margin: 0;
-  accent-color: var(--burgundy);
-}
-
 .price-item-control {
   display: flex;
   flex-direction: column;
@@ -271,7 +286,6 @@
   white-space: nowrap;
 }
 
-.price-item-notify input { width: auto; margin: 0; accent-color: var(--burgundy); }
 
 /* ---------------- PUBLIC /terms PAGE ---------------- */
 
