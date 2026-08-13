@@ -45,14 +45,22 @@ export function shiftDate(iso: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+// The year is deliberately included: this string is archived verbatim into
+// terms_acceptances and has to identify a specific booking years later.
 export function longDate(iso: string | null): string | null {
   if (!iso) return null;
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
+    year: 'numeric',
     timeZone: 'UTC',
   });
+}
+
+/** "by Tuesday, September 1, 2026" or the generic rule when no date is known. */
+export function balanceDuePhrase(terms: Pick<RenderedTerms, 'balanceDueLabel'>): string {
+  return terms.balanceDueLabel ? `by ${terms.balanceDueLabel}` : '24 hours before your service date';
 }
 
 /** Explicit due_date wins; otherwise the day before service. Never stored. */
@@ -76,14 +84,20 @@ export function outstandingCents(inv: Invoice): number {
 
 function depositClause(invoice: Invoice): TermsClause | null {
   if (!invoice.deposit_cents) return null;
-  const covers =
-    'It covers menu planning and the time I set aside for you, and it comes off your total — it is not added on top.';
 
-  if (invoice.status === 'deposit_paid' || invoice.status === 'paid') {
+  // Deliberately silent on a settled invoice: balanceClause already says
+  // "paid in full", and a past-tense deposit clause here would both claim a
+  // reservation that is no longer pending and — if the customer paid in full
+  // in one go — describe a deposit payment that never happened.
+  if (invoice.status === 'paid') return null;
+
+  if (invoice.status === 'deposit_paid') {
+    // Always the configured deposit, never amount_paid_cents: the two diverge
+    // whenever more than the deposit has been collected.
     return {
       id: 'deposit',
       title: 'Your deposit',
-      body: `Your deposit of ${formatCents(invoice.amount_paid_cents, invoice.currency)} is in and your date is reserved. ${covers}`,
+      body: `Your deposit of ${formatCents(invoice.deposit_cents, invoice.currency)} is in and your date is reserved. It covers menu planning and the time I set aside for you, and it comes off your total — it is not added on top.`,
     };
   }
   return {
@@ -102,23 +116,29 @@ function balanceClause(invoice: Invoice, balanceLabel: string | null, derived: b
     };
   }
 
-  const outstanding = formatCents(outstandingCents(invoice), invoice.currency);
   const plusGroceries = hasUnpricedItems(invoice) ? ', plus the grocery total once it is final,' : '';
-  const tail =
-    'I shop right before I cook, so the final payment needs to land before I do.';
+  const tail = 'I shop right before I cook, so the final payment needs to land before I do.';
+
+  // Before anything is paid, measure the remainder against the deposit this
+  // same page is asking for — otherwise "your remaining balance" prints the
+  // full total, contradicting the deposit clause's "it comes off your total".
+  const pendingDeposit = invoice.amount_paid_cents === 0 ? (invoice.deposit_cents ?? 0) : 0;
+  const remainder = Math.max(invoice.total_cents - invoice.amount_paid_cents - pendingDeposit, 0);
+  const outstanding = formatCents(remainder, invoice.currency);
+  const lead = pendingDeposit > 0 ? 'After the deposit, your remaining balance of' : 'Your remaining balance of';
 
   if (balanceLabel) {
     const suffix = derived ? ' — the day before your service date' : '';
     return {
       id: 'balance',
       title: 'Final payment',
-      body: `Your remaining balance of ${outstanding}${plusGroceries} is due by ${balanceLabel}${suffix}. ${tail}`,
+      body: `${lead} ${outstanding}${plusGroceries} is due by ${balanceLabel}${suffix}. ${tail}`,
     };
   }
   return {
     id: 'balance',
     title: 'Final payment',
-    body: `Your remaining balance of ${outstanding}${plusGroceries} is due 24 hours before your service date. I will confirm the exact date with you as soon as we have one on the calendar. ${tail}`,
+    body: `${lead} ${outstanding}${plusGroceries} is due 24 hours before your service date. I will confirm the exact date with you as soon as we have one on the calendar. ${tail}`,
   };
 }
 
@@ -129,9 +149,17 @@ const GROCERIES_CLAUSE: TermsClause = {
 };
 
 function cancellationClause(invoice: Invoice, cutoffLabel: string | null): TermsClause {
+  // With no service date on file, say so rather than citing a date that does
+  // not exist — and supply the trailing comma the em-dash variant carries.
   const window = cutoffLabel
     ? `on or after ${cutoffLabel} — within 48 hours of your service date —`
-    : 'within 48 hours of your service date';
+    : 'within 48 hours of your service date, which I will confirm with you in writing as soon as it is on the calendar,';
+
+  // Parenthetical variant for the branch that continues with a comma, so the
+  // sentence never renders "— ,".
+  const windowBeforeComma = cutoffLabel
+    ? `on or after ${cutoffLabel} (within 48 hours of your service date)`
+    : 'within 48 hours of your service date, which I will confirm with you in writing as soon as it is on the calendar';
 
   if (invoice.deposit_cents) {
     return {
@@ -143,7 +171,7 @@ function cancellationClause(invoice: Invoice, cutoffLabel: string | null): Terms
   return {
     id: 'cancellation',
     title: 'Cancellations & rescheduling',
-    body: `Plans change — just tell me as early as you can. If you cancel ${window}, any groceries I have already bought for your menu are billed at cost, and work already done is invoiced as scheduled. Before then there is no cancellation charge.`,
+    body: `Plans change — just tell me as early as you can. If you cancel ${windowBeforeComma}, any groceries I have already bought for your menu are billed at cost, and work already done is invoiced as scheduled. Before then there is no cancellation charge.`,
   };
 }
 
@@ -254,9 +282,11 @@ export function genericTerms(): RenderedTerms {
  * pasted straight into a Stripe dispute response — never regenerated, since
  * the wording may have changed since.
  */
-export function termsPlainText(terms: RenderedTerms): string {
+export function termsPlainText(terms: RenderedTerms, identity?: { invoiceNumber: number; customerName: string }): string {
   const lines = [
     `TAILORED TASTE — SERVICE TERMS (v${terms.version})`,
+    ...(identity ? [`Invoice #${identity.invoiceNumber} — ${identity.customerName}`] : []),
+    ...(terms.serviceDateLabel ? [`Service date: ${terms.serviceDateLabel}`] : []),
     '',
     terms.intro,
     '',

@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { dbInsert, dbUpdate } from '@/lib/db';
 import { descriptorSuffix } from '@/lib/descriptor';
+import { sendEmail } from '@/lib/email';
 import { siteUrl } from '@/lib/env';
 import { allowedPaymentTypes, getInvoiceByToken, paymentAmountCents } from '@/lib/invoices';
 import { stripe } from '@/lib/stripe';
 import { TERMS_VERSION, balanceDueDate, buildTerms, cancelCutoffDate, termsPlainText } from '@/lib/terms';
+import { termsDigest } from '@/lib/terms-digest';
 import type { PaymentType } from '@/lib/types';
 
 // Public, token-gated: possessing the 256-bit invoice token is the customer's
@@ -50,45 +52,96 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   }
 
   const terms = buildTerms(invoice);
+  const termsText = termsPlainText(terms, {
+    invoiceNumber: invoice.invoice_number,
+    customerName: invoice.customer_name,
+  });
+
+  // Staleness gate. The page echoes back the amount and a digest of the exact
+  // terms it rendered; if the chef repriced in the meantime, refuse rather
+  // than charge a number the customer never agreed to. These values are only
+  // ever compared — never used as the charge — so the client still cannot
+  // influence any amount.
+  if (typeof body.expected_charge_cents === 'number' && body.expected_charge_cents !== amount) {
+    return NextResponse.json(
+      { error: 'Your invoice was updated — please review the new amount.', stale: true },
+      { status: 409 }
+    );
+  }
+  const digest = termsDigest(termsText);
+  if (typeof body.expected_terms_digest === 'string' && body.expected_terms_digest !== digest) {
+    return NextResponse.json(
+      { error: 'Your invoice was updated — please review the new terms.', stale: true },
+      { status: 409 }
+    );
+  }
+
   const acceptedAt = new Date().toISOString();
   const ip =
     (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim().slice(0, 60) ||
     req.headers.get('x-real-ip')?.slice(0, 60) ||
     null;
 
+  const acceptanceRow = {
+    invoice_id: invoice.id,
+    terms_version: TERMS_VERSION,
+    payment_type: type,
+    accepted_at: acceptedAt,
+    ip,
+    user_agent: (req.headers.get('user-agent') ?? '').slice(0, 400) || null,
+    terms_text: termsText,
+    snapshot: {
+      invoice_number: invoice.invoice_number,
+      currency: invoice.currency,
+      total_cents: invoice.total_cents,
+      deposit_cents: invoice.deposit_cents,
+      amount_paid_cents: invoice.amount_paid_cents,
+      charge_cents: amount,
+      terms_digest: digest,
+      service_date: invoice.service_date,
+      service_time: invoice.service_time,
+      balance_due_date: balanceDueDate(invoice),
+      cancel_cutoff_date: cancelCutoffDate(invoice),
+      line_items: invoice.line_items,
+    },
+  };
+
+  // Fail CLOSED: without this row there is no dispute evidence, and Stripe
+  // metadata cannot hold a copy (values cap at 500 chars; the terms run to
+  // thousands). One retry absorbs a transient blip; a persistent failure
+  // refuses the payment and pages the owner rather than silently taking money
+  // with no record of what was agreed.
   let acceptanceId: string | null = null;
+  for (let attempt = 0; attempt < 2 && !acceptanceId; attempt++) {
+    try {
+      const row = await dbInsert<{ id: string }>('terms_acceptances', acceptanceRow);
+      acceptanceId = row.id;
+    } catch (err) {
+      console.error(`Terms acceptance record failed (attempt ${attempt + 1}):`, err);
+    }
+  }
+  if (!acceptanceId) {
+    const adminTo = process.env.CONTACT_TO;
+    if (adminTo) {
+      await sendEmail({
+        to: adminTo,
+        subject: 'URGENT: invoice payments are blocked',
+        html: `<p>Could not write a terms-acceptance record for invoice #${invoice.invoice_number}, so the payment was refused. Payments stay blocked until this is fixed — check that the terms_acceptances table exists and the migration has been run.</p>`,
+      }).catch(() => null);
+    }
+    return NextResponse.json(
+      { error: 'We could not start your payment just now. Please try again in a moment.' },
+      { status: 503 }
+    );
+  }
+
   try {
-    const row = await dbInsert<{ id: string }>('terms_acceptances', {
-      invoice_id: invoice.id,
-      terms_version: TERMS_VERSION,
-      payment_type: type,
-      accepted_at: acceptedAt,
-      ip,
-      user_agent: (req.headers.get('user-agent') ?? '').slice(0, 400) || null,
-      terms_text: termsPlainText(terms),
-      snapshot: {
-        invoice_number: invoice.invoice_number,
-        currency: invoice.currency,
-        total_cents: invoice.total_cents,
-        deposit_cents: invoice.deposit_cents,
-        amount_paid_cents: invoice.amount_paid_cents,
-        charge_cents: amount,
-        service_date: invoice.service_date,
-        service_time: invoice.service_time,
-        balance_due_date: balanceDueDate(invoice),
-        cancel_cutoff_date: cancelCutoffDate(invoice),
-        line_items: invoice.line_items,
-      },
-    });
-    acceptanceId = row.id;
-    // First acceptance only.
+    // First acceptance only — denormalized for display.
     await dbUpdate('invoices', `id=eq.${invoice.id}&terms_accepted_at=is.null`, {
       terms_accepted_at: acceptedAt,
     });
   } catch (err) {
-    // A logging failure must never block a payment: terms_version also rides
-    // along in the Stripe metadata, so Stripe holds a second copy.
-    console.error('Terms acceptance record failed:', err);
+    console.error('Failed to stamp first terms acceptance:', err);
   }
 
   try {
@@ -170,12 +223,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
       if (!message.includes('23505') && !message.includes('duplicate')) throw err;
     }
 
-    if (acceptanceId) {
-      try {
-        await dbUpdate('terms_acceptances', `id=eq.${acceptanceId}`, { stripe_session_id: session.id });
-      } catch (err) {
-        console.error('Failed to link acceptance to session:', err);
-      }
+    // Links the acceptance to the charge. If this fails the evidence still
+    // exists (matched by invoice + timestamp), but log it loudly enough to be
+    // found later, since it is what the receipt email keys off.
+    try {
+      await dbUpdate('terms_acceptances', `id=eq.${acceptanceId}`, { stripe_session_id: session.id });
+    } catch (err) {
+      console.error(
+        `ACCEPTANCE UNLINKED acceptance=${acceptanceId} session=${session.id} invoice=${invoice.id} — ` +
+          `dispute evidence exists but is not joined to the charge`,
+        err
+      );
     }
 
     return NextResponse.json({ clientSecret: session.client_secret });

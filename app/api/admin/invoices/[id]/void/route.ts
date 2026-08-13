@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { dbUpdate } from '@/lib/db';
 import { getInvoiceById } from '@/lib/invoices';
+import { expirePendingSessions } from '@/lib/pending-sessions';
 import { rejectCrossSite, requireAdmin } from '@/lib/session';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -13,11 +14,26 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const invoice = await getInvoiceById(id);
   if (!invoice) return NextResponse.json({ error: 'Invoice not found.' }, { status: 404 });
 
-  // Atomic: the status filter means a concurrent payment/void can't be overwritten.
+  // Kill any open checkout first, or a customer with the page still mounted
+  // can pay after the void — the webhook now refuses to apply that payment,
+  // but taking the money at all means an avoidable refund.
+  const expiry = await expirePendingSessions(invoice.id);
+  if (expiry) {
+    return NextResponse.json({ error: expiry.message }, { status: expiry.kind === 'settled' ? 409 : 502 });
+  }
+
+  // Re-read: a session may have settled microseconds before we expired it.
+  const fresh = await getInvoiceById(invoice.id);
+  if (!fresh) return NextResponse.json({ error: 'Invoice not found.' }, { status: 404 });
+
+  const now = new Date().toISOString();
+  // Atomic: the status filter means a concurrent payment/void can't be
+  // overwritten, and amount_paid_cents surfaces a settlement that raced us.
   const updated = await dbUpdate(
     'invoices',
-    `id=eq.${invoice.id}&status=in.("draft","sent","deposit_paid")`,
-    { status: 'void', voided_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+    `id=eq.${fresh.id}&status=in.("draft","sent","deposit_paid")` +
+      `&amount_paid_cents=eq.${fresh.amount_paid_cents}`,
+    { status: 'void', voided_at: now, updated_at: now }
   );
 
   if (updated.length === 0) {

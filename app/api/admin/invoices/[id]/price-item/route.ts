@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { dbSelect, dbUpdate } from '@/lib/db';
+import { dbUpdate } from '@/lib/db';
 import { invoiceUpdatedEmail, sendEmail } from '@/lib/email';
 import { LIMITS, computeTotalCents, getInvoiceById } from '@/lib/invoices';
+import { expirePendingSessions } from '@/lib/pending-sessions';
 import { rejectCrossSite, requireAdmin } from '@/lib/session';
-import { stripe } from '@/lib/stripe';
-import type { Invoice, LineItem, Payment } from '@/lib/types';
+import type { Invoice, LineItem } from '@/lib/types';
 
 // Sets the price of a TBD line item (e.g. groceries, once shopped) and
 // re-totals the invoice. This is the ONE controlled mutation on an otherwise
@@ -76,24 +76,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   // Expire every pending Stripe session BEFORE writing anything: otherwise a
   // customer holding an open checkout could pay a balance computed from the
   // pre-reprice total. Never continue past a failed expire.
-  const pending = await dbSelect<Payment>('payments', `invoice_id=eq.${invoice.id}&status=eq.pending`);
-  for (const p of pending) {
-    if (p.stripe_session_id.startsWith('manual-')) continue;
-    try {
-      await stripe().checkout.sessions.expire(p.stripe_session_id);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : '';
-      if (/complete/i.test(msg)) {
-        return NextResponse.json({ error: 'A payment just came in — refresh and try again.' }, { status: 409 });
-      }
-      console.error('Failed to expire session before reprice:', err);
-      return NextResponse.json({ error: 'Could not safely update the price. Try again.' }, { status: 502 });
-    }
-    // The resulting checkout.session.expired webhook is idempotent, so this
-    // duplicate write is harmless.
-    await dbUpdate('payments', `stripe_session_id=eq.${p.stripe_session_id}&status=eq.pending`, {
-      status: 'expired',
-    });
+  const expiry = await expirePendingSessions(invoice.id);
+  if (expiry) {
+    return NextResponse.json({ error: expiry.message }, { status: expiry.kind === 'settled' ? 409 : 502 });
   }
 
   // Re-read: a session may have settled microseconds before we expired it.
@@ -153,10 +138,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     `&amount_paid_cents=eq.${fresh.amount_paid_cents}` +
     `&updated_at=eq.${encodeURIComponent(fresh.updated_at)}`;
 
+  // The webhook deliberately refuses to enter 'paid' while items are unpriced,
+  // so an invoice can arrive here already fully covered. Clearing the last TBD
+  // item is what completes it — otherwise it would sit at deposit_paid with a
+  // zero balance that neither the customer nor mark-paid could ever settle.
+  const noTbdLeft = !nextItems.some(i => i.pricing === 'tbd');
+  const settledNow = noTbdLeft && fresh.amount_paid_cents >= nextTotal;
+
   const updated = await dbUpdate<Invoice>('invoices', filter, {
     line_items: nextItems,
     total_cents: nextTotal,
     updated_at: now,
+    ...(settledNow ? { status: 'paid', paid_at: now } : {}),
   });
   if (updated.length === 0) {
     return NextResponse.json({ error: 'The invoice changed underneath you — refresh and try again.' }, { status: 409 });

@@ -156,8 +156,15 @@ export function validateCreateInvoice(body: Record<string, unknown>): CreateInvo
   let deposit_cents: number | null = null;
   if (body.deposit_cents !== null && body.deposit_cents !== undefined && body.deposit_cents !== 0) {
     const dep = body.deposit_cents;
-    if (!Number.isInteger(dep) || (dep as number) < 50 || (dep as number) >= total) {
-      return { error: 'Deposit must be at least $0.50 and less than the priced subtotal.' };
+    // The remainder must also clear Stripe's 50c minimum, or the balance
+    // payment would render a button that can never succeed.
+    if (
+      !Number.isInteger(dep) ||
+      (dep as number) < 50 ||
+      (dep as number) >= total ||
+      total - (dep as number) < 50
+    ) {
+      return { error: 'Deposit must be at least $0.50 and leave at least $0.50 of balance.' };
     }
     deposit_cents = dep as number;
   }

@@ -2,7 +2,7 @@ import 'server-only';
 import type Stripe from 'stripe';
 import { siteUrl } from './env';
 import { formatCents } from './money';
-import { TERMS_VERSION, buildTerms, type RenderedTerms } from './terms';
+import { TERMS_VERSION, balanceDuePhrase, buildTerms, type RenderedTerms } from './terms';
 import { hasUnpricedItems, lineAmountCents } from './types';
 import type { Invoice, PaymentType } from './types';
 
@@ -206,7 +206,11 @@ export function invoiceEmail(invoice: Invoice): { subject: string; html: string 
 export function receiptEmail(
   invoice: Invoice,
   paidCents: number,
-  paymentType: PaymentType
+  paymentType: PaymentType,
+  // The acceptance THIS payment was made under. Passed in rather than looked
+  // up so this stays a pure template; without it the email would pair the
+  // current terms version with the date of some earlier acceptance.
+  acceptance?: { terms_version: string; accepted_at: string } | null
 ): { subject: string; html: string } {
   const link = `${siteUrl()}/invoice/${invoice.token}`;
   const remaining = invoice.total_cents - invoice.amount_paid_cents;
@@ -215,15 +219,15 @@ export function receiptEmail(
 
   const terms = buildTerms(invoice);
   const unpriced = hasUnpricedItems(invoice);
-  const dueLine = terms.balanceDueLabel ? ` Due by ${escapeHtml(terms.balanceDueLabel)}.` : '';
+  const dueLine = ` Due ${escapeHtml(balanceDuePhrase(terms))}.`;
 
   // While items are unpriced there is deliberately NO pay button: the invoice
   // page has no balance option yet, so a button would lead to a dead end.
   const balanceBlock = unpriced
     ? `<p style="font-size:15px;text-align:center;margin:18px 0 0;">
          Remaining balance <em>so far</em>: <strong>${formatCents(remaining, invoice.currency)}</strong>,
-         plus the grocery total once it&rsquo;s final. I&rsquo;ll email your final balance as soon as the
-         shopping is done — it&rsquo;s due 24 hours before your service date.
+         plus the items still to be priced. I&rsquo;ll email your final balance as soon as they&rsquo;re
+         set — it&rsquo;s due ${escapeHtml(balanceDuePhrase(terms))}.
        </p>`
     : remaining > 0
       ? `
@@ -233,11 +237,14 @@ export function receiptEmail(
       </div>`
       : `<p style="font-size:15px;text-align:center;margin:18px 0 0;color:#2D4E1A;"><strong>This invoice is now paid in full — thank you!</strong></p>`;
 
-  // Restating the acceptance makes this email itself dispute evidence.
-  const acceptedLine = invoice.terms_accepted_at
+  // Restating the acceptance makes this email itself dispute evidence, so the
+  // version and the date must be the pair that actually went together.
+  const acceptedVersion = acceptance?.terms_version ?? TERMS_VERSION;
+  const acceptedAt = acceptance?.accepted_at ?? invoice.terms_accepted_at;
+  const acceptedLine = acceptedAt
     ? `<p style="font-size:12px;color:#8A8178;text-align:center;margin:18px 0 0;">
-         You accepted the Tailored Taste service terms (v${escapeHtml(TERMS_VERSION)}) on
-         ${escapeHtml(new Date(invoice.terms_accepted_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }))}.
+         You accepted the Tailored Taste service terms (v${escapeHtml(acceptedVersion)}) on
+         ${escapeHtml(new Date(acceptedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }))}.
          <a href="${siteUrl()}/terms" style="color:#7A1530;">Read them again</a>
        </p>`
     : '';
@@ -312,9 +319,7 @@ export function invoiceUpdatedEmail(
   const terms = buildTerms(invoice);
   const remaining = Math.max(invoice.total_cents - invoice.amount_paid_cents, 0);
   const stillUnpriced = hasUnpricedItems(invoice);
-  const dueLine = terms.balanceDueLabel
-    ? `due by <strong>${escapeHtml(terms.balanceDueLabel)}</strong>`
-    : 'due 24 hours before your service date';
+  const dueLine = `due ${escapeHtml(balanceDuePhrase(terms))}`;
 
   const payButton =
     remaining > 0 && !stillUnpriced
@@ -375,6 +380,33 @@ export function invoiceUpdatedEmail(
       : 'Your updated invoice — Tailored Taste',
     html,
   };
+}
+
+/**
+ * Internal alert: money was captured against a voided or already-paid invoice.
+ * The payment is recorded but deliberately NOT applied, so a human must refund.
+ */
+export function terminalPaymentAlert(
+  invoice: Invoice,
+  payment: { id: string; amount_cents: number; payment_type: PaymentType; stripe_payment_intent_id: string | null },
+  sessionId: string
+): string {
+  return wrap(`
+    <h2 style="font-size:18px;margin:0 0 12px;text-align:center;color:#7A1530;">Refund owed</h2>
+    <p style="font-size:15px;margin:0 0 12px;line-height:1.6;">
+      A payment of <strong>${formatCents(payment.amount_cents, invoice.currency)}</strong> (${escapeHtml(payment.payment_type)})
+      was captured for <strong>${escapeHtml(invoice.customer_name)}</strong> on invoice
+      #${invoice.invoice_number}, which is already <strong>${escapeHtml(invoice.status)}</strong>.
+      The payment was <em>not</em> applied to the invoice — refund it in Stripe.
+    </p>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;">
+      <tr><td style="padding:5px 12px 5px 0;color:#8A8178;">Session</td><td style="padding:5px 0;text-align:right;font-family:monospace;">${escapeHtml(sessionId)}</td></tr>
+      <tr><td style="padding:5px 12px 5px 0;color:#8A8178;">PaymentIntent</td><td style="padding:5px 0;text-align:right;font-family:monospace;">${escapeHtml(payment.stripe_payment_intent_id ?? '—')}</td></tr>
+    </table>
+    <p style="font-size:14px;margin:16px 0 0;">
+      <a href="${siteUrl()}/admin/invoices/${invoice.id}" style="color:#7A1530;">Open the invoice in the admin</a>
+    </p>
+  `);
 }
 
 /** Internal alert. Disputes have a hard deadline; missing it loses by default. */

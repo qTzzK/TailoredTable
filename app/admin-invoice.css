@@ -252,9 +252,10 @@
   margin-bottom: 1.5rem;
 }
 
+/* description · qty · TBD toggle · price-or-note · remove */
 .line-item-row {
   display: grid;
-  grid-template-columns: 1fr 90px 130px 36px;
+  grid-template-columns: 1fr 90px 56px 130px 36px;
   gap: 0.6rem;
   margin-bottom: 0.6rem;
   align-items: center;
@@ -464,7 +465,7 @@
   .admin-main { padding: 1.5rem 1rem 4rem; }
   .admin-header { padding: 1rem 1.25rem; }
   .invoice-card { padding: 1.75rem 1.25rem; }
-  .line-item-row { grid-template-columns: 1fr 70px 110px 32px; }
+  .line-item-row { grid-template-columns: 1fr 60px 44px 110px 32px; }
 }
 
 .admin-row-link { cursor: pointer; }

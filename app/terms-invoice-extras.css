@@ -336,7 +336,6 @@
 
 @media (max-width: 640px) {
   .invoice-terms-head { flex-direction: column; gap: 0.2rem; }
-  .line-item-row { grid-template-columns: 1fr 60px 44px 110px 32px; }
   .terms-page { padding: 2rem 1.35rem; }
   .price-item-control { min-width: 0; }
 }

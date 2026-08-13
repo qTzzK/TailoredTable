@@ -7,6 +7,8 @@ import { useEffect, useRef, useState } from 'react';
 export interface PayOption {
   type: 'deposit' | 'full' | 'balance';
   label: string;
+  /** Echoed back on checkout purely as a staleness gate — never the charge. */
+  chargeCents: number;
 }
 
 interface Props {
@@ -14,6 +16,7 @@ interface Props {
   options: PayOption[];
   returnedSessionId?: string;
   termsVersion: string;
+  termsDigest: string;
   previouslyAcceptedOn?: string | null;
 }
 
@@ -24,6 +27,7 @@ export default function InvoicePayment({
   options,
   returnedSessionId,
   termsVersion,
+  termsDigest,
   previouslyAcceptedOn,
 }: Props) {
   const router = useRouter();
@@ -78,10 +82,24 @@ export default function InvoicePayment({
       const res = await fetch(`/api/invoice/${encodeURIComponent(token)}/checkout-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payment_type: option.type, accept_terms: true, terms_version: termsVersion }),
+        body: JSON.stringify({
+          payment_type: option.type,
+          accept_terms: true,
+          terms_version: termsVersion,
+          expected_charge_cents: option.chargeCents,
+          expected_terms_digest: termsDigest,
+        }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.clientSecret) {
+        // A stale page means the chef changed the invoice while it was open —
+        // reload so the customer sees the real amount before paying.
+        if (data?.stale) {
+          setError(`${data.error} Reloading…`);
+          setSelected(null);
+          setTimeout(() => router.refresh(), 1800);
+          return;
+        }
         setError(data?.error || 'Unable to start the payment. Please try again.');
         setSelected(null);
         return;

@@ -4,7 +4,8 @@ import InvoicePayment, { type PayOption } from '@/components/InvoicePayment';
 import { dbSelect } from '@/lib/db';
 import { allowedPaymentTypes, getInvoiceByToken, paymentAmountCents } from '@/lib/invoices';
 import { formatCents } from '@/lib/money';
-import { buildTerms } from '@/lib/terms';
+import { balanceDuePhrase, buildTerms, termsPlainText } from '@/lib/terms';
+import { termsDigest } from '@/lib/terms-digest';
 import { hasUnpricedItems, lineAmountCents } from '@/lib/types';
 import type { Payment } from '@/lib/types';
 
@@ -81,12 +82,26 @@ export default async function InvoicePage({
 
   const terms = buildTerms(invoice);
   const unpriced = hasUnpricedItems(invoice);
-  const unpricedCount = invoice.line_items.filter(i => i.pricing === 'tbd').length;
+  const unpricedItems = invoice.line_items.filter(i => i.pricing === 'tbd');
+  const unpricedCount = unpricedItems.length;
+  // Name the actual item rather than assuming it is groceries.
+  const unpricedLabel =
+    unpricedCount === 1 ? unpricedItems[0].description.toLowerCase() : 'the remaining items';
 
-  const options: PayOption[] = allowedPaymentTypes(invoice).map(type => ({
-    type: type as PayOption['type'],
-    label: PAY_LABEL[type](formatCents(paymentAmountCents(invoice, type), invoice.currency)),
-  }));
+  const options: PayOption[] = allowedPaymentTypes(invoice).map(type => {
+    const chargeCents = paymentAmountCents(invoice, type);
+    return {
+      type: type as PayOption['type'],
+      label: PAY_LABEL[type](formatCents(chargeCents, invoice.currency)),
+      chargeCents,
+    };
+  });
+
+  // Echoed back on checkout so a reprice between page load and payment is
+  // refused rather than silently charging a different amount.
+  const digest = termsDigest(
+    termsPlainText(terms, { invoiceNumber: invoice.invoice_number, customerName: invoice.customer_name })
+  );
 
   const remaining = invoice.total_cents - invoice.amount_paid_cents;
   const succeededPayments =
@@ -263,8 +278,8 @@ export default async function InvoicePage({
             )}
             {options.length === 0 ? (
               <div className="invoice-status-note muted">
-                Your final balance will be ready once your groceries are shopped — I&apos;ll email you as soon as
-                it&apos;s set. Payment is due 24 hours before your service.
+                Your final balance will be ready once I&apos;ve priced {unpricedLabel} — I&apos;ll email you as
+                soon as it&apos;s set. Payment is due {balanceDuePhrase(terms)}.
               </div>
             ) : (
               <InvoicePayment
@@ -272,6 +287,7 @@ export default async function InvoicePage({
                 options={options}
                 returnedSessionId={session_id}
                 termsVersion={terms.version}
+                termsDigest={digest}
                 previouslyAcceptedOn={
                   invoice.terms_accepted_at
                     ? new Date(invoice.terms_accepted_at).toLocaleDateString('en-US', {

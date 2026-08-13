@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatCents } from '@/lib/money';
+import { balanceDueDate } from '@/lib/terms';
 import { hasUnpricedItems } from '@/lib/types';
 import type { Invoice } from '@/lib/types';
 
@@ -27,6 +28,7 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
           <th>Total</th>
           <th>Paid</th>
           <th>Deposit</th>
+          <th>Service</th>
           <th>Due</th>
           <th>Status</th>
           <th>Created</th>
@@ -52,7 +54,9 @@ export default function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
             </td>
             <td>{inv.amount_paid_cents > 0 ? formatCents(inv.amount_paid_cents, inv.currency) : '—'}</td>
             <td>{inv.deposit_cents ? formatCents(inv.deposit_cents, inv.currency) : '—'}</td>
-            <td>{fmtDate(inv.due_date)}</td>
+            <td>{fmtDate(inv.service_date)}</td>
+            {/* Derived, so it is not blank whenever due_date was left empty. */}
+            <td>{fmtDate(balanceDueDate(inv))}</td>
             <td>
               <span className={`status-pill status-${inv.status}`}>{statusLabel(inv.status)}</span>
             </td>
