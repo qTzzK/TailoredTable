@@ -624,3 +624,21 @@ input[type='radio'] {
   .terms-page { padding: 2rem 1.35rem; }
   .price-item-control { min-width: 0; }
 }
+
+/* ============ MUTED NOTE LEGIBILITY ============
+   Cormorant Garamond italic is a thin display face; below ~1rem its strokes
+   drop to roughly a pixel and the muted notes wash out. 500 is loaded in the
+   font import, so this thickens them without changing the typeface. Last file
+   in layout.tsx, so these land after each class's own declarations. */
+.admin-note,
+.admin-empty,
+.invoice-item-note,
+.invoice-terms-intro,
+.invoice-terms-prior,
+.invoice-pay-hint,
+.form-hint,
+.payment-offline,
+.invoice-change-amount,
+.terms-meta {
+  font-weight: 500;
+}

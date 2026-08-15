@@ -131,6 +131,11 @@
   overflow-x: auto;
 }
 
+/* Tables inside a card carry no wrapper of their own. Without this, nowrap
+   cells push the table past the card edge on a phone and the last column is
+   silently clipped rather than reachable. */
+.admin-table-scroll { overflow-x: auto; }
+
 .admin-table { width: 100%; border-collapse: collapse; font-family: 'Cormorant Garamond', serif; font-size: 1.02rem; }
 
 .admin-table th {
@@ -469,6 +474,21 @@
   /* 2rem of side padding costs 64px of a 390px screen — most of what the
      description input needs. */
   .admin-card { padding: 1.35rem 1.15rem; }
+
+  /* Five columns at 1rem a side spend 160px of a 390px screen on padding
+     alone — more than the column text itself, which is what pushed Amount off
+     the edge. Trimmed here (and flush at the two outer edges, so the table
+     lines up with the card's heading) the line items fit without scrolling;
+     a row with pricing controls still scrolls inside .admin-table-scroll.
+     Scoped to cards: the dashboard's .admin-table-wrap has its own border and
+     needs the cells to keep their inset. */
+  .admin-card .admin-table th,
+  .admin-card .admin-table td { padding-left: 0.5rem; padding-right: 0.5rem; }
+  .admin-card .admin-table th:first-child,
+  .admin-card .admin-table td:first-child { padding-left: 0; }
+  .admin-card .admin-table th:last-child,
+  .admin-card .admin-table td:last-child { padding-right: 0; }
+  .admin-card .admin-table th { letter-spacing: 1px; }
 
   /* Five columns cannot share a phone's width: the four fixed ones plus their
      gaps eat everything and the description collapses to a few characters.

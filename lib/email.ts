@@ -77,10 +77,10 @@ function wrap(content: string): string {
     <div style="max-width:560px;margin:0 auto;background:#FDFBF8;border:1px solid #D4CBBF;padding:36px 32px;">
       <div style="text-align:center;margin-bottom:28px;">
         <div style="font-size:26px;font-weight:bold;color:#7A1530;letter-spacing:0.5px;">Tailored Taste</div>
-        <div style="font-size:14px;font-style:italic;color:#8A8178;margin-top:4px;">Flavors True to You</div>
+        <div style="font-size:14px;font-style:italic;color:#6F675E;margin-top:4px;">Flavors True to You</div>
       </div>
       ${content}
-      <div style="border-top:1px solid #D4CBBF;margin-top:32px;padding-top:16px;text-align:center;font-size:12px;color:#8A8178;">
+      <div style="border-top:1px solid #D4CBBF;margin-top:32px;padding-top:16px;text-align:center;font-size:12px;color:#6F675E;">
         Tailored Taste · Miami, FL — Serving Miami-Dade &amp; Broward Counties
       </div>
     </div>
@@ -93,18 +93,18 @@ function lineItemRows(invoice: Invoice): string {
       const amount = lineAmountCents(item);
       const cell =
         amount === null
-          ? `<span style="font-style:italic;color:#8A8178;letter-spacing:1px;">TBD</span>`
+          ? `<span style="font-style:italic;color:#6F675E;letter-spacing:1px;">TBD</span>`
           : formatCents(amount, invoice.currency);
       const note =
         item.pricing === 'tbd' && item.tbd_note
-          ? `<div style="font-size:13px;font-style:italic;color:#8A8178;">${escapeHtml(item.tbd_note)}</div>`
+          ? `<div style="font-size:13px;font-style:italic;color:#6F675E;">${escapeHtml(item.tbd_note)}</div>`
           : item.pricing === 'waived'
-            ? `<div style="font-size:13px;font-style:italic;color:#8A8178;">not required</div>`
+            ? `<div style="font-size:13px;font-style:italic;color:#6F675E;">not required</div>`
             : '';
       return `
       <tr>
         <td style="padding:6px 12px 6px 0;border-bottom:1px solid #EDE7DE;">${escapeHtml(item.description)}${note}</td>
-        <td style="padding:6px 12px;border-bottom:1px solid #EDE7DE;text-align:center;color:#8A8178;">×${item.quantity}</td>
+        <td style="padding:6px 12px;border-bottom:1px solid #EDE7DE;text-align:center;color:#6F675E;">×${item.quantity}</td>
         <td style="padding:6px 0;border-bottom:1px solid #EDE7DE;text-align:right;">${cell}</td>
       </tr>`;
     })
@@ -118,7 +118,7 @@ function notesBlock(invoice: Invoice): string {
   const body = escapeHtml(invoice.notes).replace(/\n/g, '<br />');
   return `
     <div style="background:#F7F2EC;border:1px solid #D4CBBF;padding:16px 18px;margin:24px 0 0;">
-      <p style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8178;margin:0 0 8px;">A note from your chef</p>
+      <p style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#6F675E;margin:0 0 8px;">A note from your chef</p>
       <p style="font-size:15px;color:#2C2C2C;margin:0;line-height:1.6;">${body}</p>
     </div>`;
 }
@@ -139,10 +139,10 @@ function termsBlock(terms: RenderedTerms): string {
   return `
     <div style="background:#F7F2EC;border:1px solid #D4CBBF;padding:18px;margin:24px 0 0;">
       <p style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#7A1530;margin:0 0 4px;font-weight:bold;">Service Terms</p>
-      <p style="font-size:13px;font-style:italic;color:#8A8178;margin:0 0 6px;">${escapeHtml(terms.intro)}</p>
+      <p style="font-size:13px;font-style:italic;color:#6F675E;margin:0 0 6px;">${escapeHtml(terms.intro)}</p>
       <table style="width:100%;border-collapse:collapse;">${clauses}</table>
       <p style="font-size:13px;color:#5A544E;margin:14px 0 0;">${escapeHtml(terms.closing)}</p>
-      <p style="font-size:12px;color:#8A8178;margin:8px 0 0;">
+      <p style="font-size:12px;color:#6F675E;margin:8px 0 0;">
         <a href="${siteUrl()}/terms" style="color:#7A1530;">Full terms</a> · v${escapeHtml(terms.version)}
       </p>
     </div>`;
@@ -159,13 +159,13 @@ export function invoiceEmail(invoice: Invoice): { subject: string; html: string 
   }
   if (terms.balanceDueLabel) dateLines.push(`Balance due ${escapeHtml(terms.balanceDueLabel)}`);
   const dates = dateLines.length
-    ? `<p style="font-size:14px;color:#8A8178;text-align:center;margin:4px 0 0;">${dateLines.join('<br />')}</p>`
+    ? `<p style="font-size:14px;color:#6F675E;text-align:center;margin:4px 0 0;">${dateLines.join('<br />')}</p>`
     : '';
 
   const pending = unpriced
     ? `<tr>
-        <td colspan="2" style="padding:4px 12px 0 0;font-size:13px;color:#8A8178;">Final total pending</td>
-        <td style="padding:4px 0 0;text-align:right;font-size:13px;color:#8A8178;">+ groceries at cost</td>
+        <td colspan="2" style="padding:4px 12px 0 0;font-size:13px;color:#6F675E;">Final total pending</td>
+        <td style="padding:4px 0 0;text-align:right;font-size:13px;color:#6F675E;">+ groceries at cost</td>
       </tr>`
     : '';
 
@@ -176,7 +176,7 @@ export function invoiceEmail(invoice: Invoice): { subject: string; html: string 
 
   const html = wrap(`
     <h2 style="font-size:20px;margin:0 0 6px;text-align:center;color:#2C2C2C;">${invoice.description ? escapeHtml(invoice.description) : 'Invoice'}</h2>
-    <p style="font-size:15px;text-align:center;margin:0 0 20px;color:#8A8178;">for ${escapeHtml(invoice.customer_name)}</p>
+    <p style="font-size:15px;text-align:center;margin:0 0 20px;color:#6F675E;">for ${escapeHtml(invoice.customer_name)}</p>
     <table style="width:100%;font-size:15px;border-collapse:collapse;margin-bottom:16px;">
       ${lineItemRows(invoice)}
       <tr>
@@ -192,7 +192,7 @@ export function invoiceEmail(invoice: Invoice): { subject: string; html: string 
     </div>
     ${notesBlock(invoice)}
     ${termsBlock(terms)}
-    <p style="font-size:13px;color:#8A8178;text-align:center;margin:16px 0 0;">Payments are processed securely by Stripe.</p>
+    <p style="font-size:13px;color:#6F675E;text-align:center;margin:16px 0 0;">Payments are processed securely by Stripe.</p>
   `);
 
   return {
@@ -242,7 +242,7 @@ export function receiptEmail(
   const acceptedVersion = acceptance?.terms_version ?? TERMS_VERSION;
   const acceptedAt = acceptance?.accepted_at ?? invoice.terms_accepted_at;
   const acceptedLine = acceptedAt
-    ? `<p style="font-size:12px;color:#8A8178;text-align:center;margin:18px 0 0;">
+    ? `<p style="font-size:12px;color:#6F675E;text-align:center;margin:18px 0 0;">
          You accepted the Tailored Taste service terms (v${escapeHtml(acceptedVersion)}) on
          ${escapeHtml(new Date(acceptedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }))}.
          <a href="${siteUrl()}/terms" style="color:#7A1530;">Read them again</a>
@@ -251,20 +251,20 @@ export function receiptEmail(
 
   const html = wrap(`
     <h2 style="font-size:20px;margin:0 0 6px;text-align:center;">Thank you, ${escapeHtml(invoice.customer_name)}!</h2>
-    <p style="font-size:15px;text-align:center;margin:0 0 20px;color:#8A8178;">Your ${label} has been received.</p>
+    <p style="font-size:15px;text-align:center;margin:0 0 20px;color:#6F675E;">Your ${label} has been received.</p>
     <table style="width:100%;font-size:15px;border-collapse:collapse;">
       <tr>
-        <td style="padding:8px 12px 8px 0;color:#8A8178;">For</td>
+        <td style="padding:8px 12px 8px 0;color:#6F675E;">For</td>
         <td style="padding:8px 0;text-align:right;">${invoice.description ? escapeHtml(invoice.description) : 'Invoice'}</td>
       </tr>
       <tr>
-        <td style="padding:8px 12px 8px 0;color:#8A8178;border-top:1px solid #EDE7DE;">Amount paid</td>
+        <td style="padding:8px 12px 8px 0;color:#6F675E;border-top:1px solid #EDE7DE;">Amount paid</td>
         <td style="padding:8px 0;text-align:right;border-top:1px solid #EDE7DE;font-weight:bold;">${formatCents(paidCents, invoice.currency)}</td>
       </tr>
     </table>
     ${balanceBlock}
     ${acceptedLine}
-    <p style="font-size:13px;color:#8A8178;text-align:center;margin:20px 0 0;">You can view your invoice anytime at <a href="${link}" style="color:#7A1530;">your invoice page</a>. Payments are processed securely by Stripe.</p>
+    <p style="font-size:13px;color:#6F675E;text-align:center;margin:20px 0 0;">You can view your invoice anytime at <a href="${link}" style="color:#7A1530;">your invoice page</a>. Payments are processed securely by Stripe.</p>
   `);
 
   return {
@@ -288,7 +288,7 @@ export function adminPaymentNotification(
       <strong>${formatCents(paidCents, invoice.currency)}</strong> (${paymentType})
       on ${invoice.description ? `&quot;${escapeHtml(invoice.description)}&quot; (invoice #${invoice.invoice_number})` : `invoice #${invoice.invoice_number}`}.
     </p>
-    <p style="font-size:14px;color:#8A8178;text-align:center;margin:12px 0 0;">
+    <p style="font-size:14px;color:#6F675E;text-align:center;margin:12px 0 0;">
       ${
         remaining > 0
           ? `Remaining balance${hasUnpricedItems(invoice) ? ' so far' : ''}: ${formatCents(remaining, invoice.currency)}` +
@@ -332,7 +332,7 @@ export function invoiceUpdatedEmail(
 
   const html = wrap(`
     <h2 style="font-size:20px;margin:0 0 6px;text-align:center;color:#2C2C2C;">Your updated invoice</h2>
-    <p style="font-size:15px;text-align:center;margin:0 0 20px;color:#8A8178;">${invoice.description ? escapeHtml(invoice.description) : 'Invoice'}</p>
+    <p style="font-size:15px;text-align:center;margin:0 0 20px;color:#6F675E;">${invoice.description ? escapeHtml(invoice.description) : 'Invoice'}</p>
     <p style="font-size:15px;margin:0 0 16px;line-height:1.6;">
       Hi ${escapeHtml(invoice.customer_name)} — I&rsquo;ve added the final cost for
       <strong>${escapeHtml(change.itemDescription)}</strong>. As noted on your invoice, this was billed at
@@ -341,8 +341,8 @@ export function invoiceUpdatedEmail(
     <table style="width:100%;font-size:15px;border-collapse:collapse;margin-bottom:16px;">
       ${lineItemRows(invoice)}
       <tr>
-        <td colspan="2" style="padding:10px 12px 0 0;color:#8A8178;">Previous total</td>
-        <td style="padding:10px 0 0;text-align:right;color:#8A8178;">${formatCents(change.previousTotalCents, invoice.currency)}</td>
+        <td colspan="2" style="padding:10px 12px 0 0;color:#6F675E;">Previous total</td>
+        <td style="padding:10px 0 0;text-align:right;color:#6F675E;">${formatCents(change.previousTotalCents, invoice.currency)}</td>
       </tr>
       <tr>
         <td colspan="2" style="padding:4px 12px 0 0;font-weight:bold;">${stillUnpriced ? 'Priced so far' : 'New total'}</td>
@@ -351,8 +351,8 @@ export function invoiceUpdatedEmail(
       ${
         invoice.amount_paid_cents > 0
           ? `<tr>
-               <td colspan="2" style="padding:4px 12px 0 0;color:#8A8178;">Already paid</td>
-               <td style="padding:4px 0 0;text-align:right;color:#8A8178;">&minus;${formatCents(invoice.amount_paid_cents, invoice.currency)}</td>
+               <td colspan="2" style="padding:4px 12px 0 0;color:#6F675E;">Already paid</td>
+               <td style="padding:4px 0 0;text-align:right;color:#6F675E;">&minus;${formatCents(invoice.amount_paid_cents, invoice.currency)}</td>
              </tr>`
           : ''
       }
@@ -371,7 +371,7 @@ export function invoiceUpdatedEmail(
     ${payButton}
     ${notesBlock(invoice)}
     ${termsBlock(terms)}
-    <p style="font-size:13px;color:#8A8178;text-align:center;margin:16px 0 0;">Payments are processed securely by Stripe.</p>
+    <p style="font-size:13px;color:#6F675E;text-align:center;margin:16px 0 0;">Payments are processed securely by Stripe.</p>
   `);
 
   return {
@@ -400,8 +400,8 @@ export function terminalPaymentAlert(
       The payment was <em>not</em> applied to the invoice — refund it in Stripe.
     </p>
     <table style="width:100%;font-size:13px;border-collapse:collapse;">
-      <tr><td style="padding:5px 12px 5px 0;color:#8A8178;">Session</td><td style="padding:5px 0;text-align:right;font-family:monospace;">${escapeHtml(sessionId)}</td></tr>
-      <tr><td style="padding:5px 12px 5px 0;color:#8A8178;">PaymentIntent</td><td style="padding:5px 0;text-align:right;font-family:monospace;">${escapeHtml(payment.stripe_payment_intent_id ?? '—')}</td></tr>
+      <tr><td style="padding:5px 12px 5px 0;color:#6F675E;">Session</td><td style="padding:5px 0;text-align:right;font-family:monospace;">${escapeHtml(sessionId)}</td></tr>
+      <tr><td style="padding:5px 12px 5px 0;color:#6F675E;">PaymentIntent</td><td style="padding:5px 0;text-align:right;font-family:monospace;">${escapeHtml(payment.stripe_payment_intent_id ?? '—')}</td></tr>
     </table>
     <p style="font-size:14px;margin:16px 0 0;">
       <a href="${siteUrl()}/admin/invoices/${invoice.id}" style="color:#7A1530;">Open the invoice in the admin</a>
@@ -427,11 +427,11 @@ export function disputeAlertEmail(
       ${eventType === 'charge.dispute.closed' ? 'Dispute closed' : 'Payment disputed'}
     </h2>
     <table style="width:100%;font-size:14px;border-collapse:collapse;">
-      <tr><td style="padding:6px 12px 6px 0;color:#8A8178;">Amount</td><td style="padding:6px 0;text-align:right;font-weight:bold;">${amount}</td></tr>
-      <tr><td style="padding:6px 12px 6px 0;color:#8A8178;">Reason</td><td style="padding:6px 0;text-align:right;">${escapeHtml(dispute.reason)}</td></tr>
-      <tr><td style="padding:6px 12px 6px 0;color:#8A8178;">Status</td><td style="padding:6px 0;text-align:right;">${escapeHtml(dispute.status)}</td></tr>
-      <tr><td style="padding:6px 12px 6px 0;color:#8A8178;">Respond by</td><td style="padding:6px 0;text-align:right;font-weight:bold;">${escapeHtml(dueBy)}</td></tr>
-      <tr><td style="padding:6px 12px 6px 0;color:#8A8178;">Dispute ID</td><td style="padding:6px 0;text-align:right;font-family:monospace;font-size:12px;">${escapeHtml(dispute.id)}</td></tr>
+      <tr><td style="padding:6px 12px 6px 0;color:#6F675E;">Amount</td><td style="padding:6px 0;text-align:right;font-weight:bold;">${amount}</td></tr>
+      <tr><td style="padding:6px 12px 6px 0;color:#6F675E;">Reason</td><td style="padding:6px 0;text-align:right;">${escapeHtml(dispute.reason)}</td></tr>
+      <tr><td style="padding:6px 12px 6px 0;color:#6F675E;">Status</td><td style="padding:6px 0;text-align:right;">${escapeHtml(dispute.status)}</td></tr>
+      <tr><td style="padding:6px 12px 6px 0;color:#6F675E;">Respond by</td><td style="padding:6px 0;text-align:right;font-weight:bold;">${escapeHtml(dueBy)}</td></tr>
+      <tr><td style="padding:6px 12px 6px 0;color:#6F675E;">Dispute ID</td><td style="padding:6px 0;text-align:right;font-family:monospace;font-size:12px;">${escapeHtml(dispute.id)}</td></tr>
     </table>
     <p style="font-size:14px;margin:16px 0 0;line-height:1.6;">${invoiceLine}</p>
     ${

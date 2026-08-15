@@ -146,50 +146,52 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
       <div className="admin-card">
         <h2>Line Items</h2>
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Qty</th>
-              <th>Unit</th>
-              <th>Amount</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoice.line_items.map((item, i) => {
-              const amount = lineAmountCents(item);
-              return (
-                <tr key={item.id ?? i}>
-                  <td style={{ whiteSpace: 'normal' }}>
-                    {item.description}
-                    {item.pricing === 'tbd' && item.tbd_note && (
-                      <span className="invoice-item-note">{item.tbd_note}</span>
-                    )}
-                    {item.pricing === 'waived' && <span className="invoice-item-note">waived — not required</span>}
-                  </td>
-                  <td>{item.quantity}</td>
-                  <td>{item.pricing === 'tbd' ? '—' : formatCents(item.unit_amount_cents ?? 0, invoice.currency)}</td>
-                  <td>{amount === null ? 'TBD' : formatCents(amount, invoice.currency)}</td>
-                  <td>
-                    {(item.pricing === 'tbd' || item.origin === 'tbd') && canPrice && item.id && (
-                      <PriceItemControl
-                        invoiceId={invoice.id}
-                        itemId={item.id}
-                        description={item.description}
-                        quantity={item.quantity}
-                        currentCents={item.unit_amount_cents}
-                        alreadyPriced={Boolean(item.priced_at)}
-                        expectedUpdatedAt={invoice.updated_at}
-                        defaultNotify={invoice.status !== 'draft'}
-                      />
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="admin-table-scroll">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit</th>
+                <th>Amount</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoice.line_items.map((item, i) => {
+                const amount = lineAmountCents(item);
+                return (
+                  <tr key={item.id ?? i}>
+                    <td style={{ whiteSpace: 'normal' }}>
+                      {item.description}
+                      {item.pricing === 'tbd' && item.tbd_note && (
+                        <span className="invoice-item-note">{item.tbd_note}</span>
+                      )}
+                      {item.pricing === 'waived' && <span className="invoice-item-note">waived — not required</span>}
+                    </td>
+                    <td>{item.quantity}</td>
+                    <td>{item.pricing === 'tbd' ? '—' : formatCents(item.unit_amount_cents ?? 0, invoice.currency)}</td>
+                    <td>{amount === null ? 'TBD' : formatCents(amount, invoice.currency)}</td>
+                    <td>
+                      {(item.pricing === 'tbd' || item.origin === 'tbd') && canPrice && item.id && (
+                        <PriceItemControl
+                          invoiceId={invoice.id}
+                          itemId={item.id}
+                          description={item.description}
+                          quantity={item.quantity}
+                          currentCents={item.unit_amount_cents}
+                          alreadyPriced={Boolean(item.priced_at)}
+                          expectedUpdatedAt={invoice.updated_at}
+                          defaultNotify={invoice.status !== 'draft'}
+                        />
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <InvoiceActions
@@ -204,30 +206,32 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         {payments.length === 0 ? (
           <p className="admin-empty" style={{ padding: '1rem 0' }}>No payments yet.</p>
         ) : (
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Verify</th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map(p => (
-                <tr key={p.id}>
-                  <td>{fmtDateTime(p.paid_at ?? p.created_at)}</td>
-                  <td>{p.payment_type}</td>
-                  <td>{formatCents(p.amount_cents, invoice.currency)}</td>
-                  <td>{p.status}</td>
-                  <td>
-                    <StripeCell payment={p} stripeBase={stripeDashboardBase()} />
-                  </td>
+          <div className="admin-table-scroll">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Verify</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {payments.map(p => (
+                  <tr key={p.id}>
+                    <td>{fmtDateTime(p.paid_at ?? p.created_at)}</td>
+                    <td>{p.payment_type}</td>
+                    <td>{formatCents(p.amount_cents, invoice.currency)}</td>
+                    <td>{p.status}</td>
+                    <td>
+                      <StripeCell payment={p} stripeBase={stripeDashboardBase()} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -238,26 +242,28 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             Not accepted yet — the customer accepts when they start a payment.
           </p>
         ) : (
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Accepted</th>
-                <th>For</th>
-                <th>Version</th>
-                <th>IP</th>
-              </tr>
-            </thead>
-            <tbody>
-              {acceptances.map(a => (
-                <tr key={a.id}>
-                  <td>{fmtDateTime(a.accepted_at)}</td>
-                  <td>{a.payment_type}</td>
-                  <td>{a.terms_version}</td>
-                  <td>{a.ip ?? '—'}</td>
+          <div className="admin-table-scroll">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Accepted</th>
+                  <th>For</th>
+                  <th>Version</th>
+                  <th>IP</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {acceptances.map(a => (
+                  <tr key={a.id}>
+                    <td>{fmtDateTime(a.accepted_at)}</td>
+                    <td>{a.payment_type}</td>
+                    <td>{a.terms_version}</td>
+                    <td>{a.ip ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         <p className="admin-note">
           Each row stores the exact terms text and amounts the customer saw before paying. If you ever get a

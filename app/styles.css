@@ -12,7 +12,9 @@
   --green-mid: #3D6826;
   --green-light: rgba(45, 78, 26, 0.07);
   --charcoal: #2C2C2C;
-  --warm-gray: #8A8178;
+  /* Muted body text. #8A8178 only reached 3.4:1 on --cream, under the 4.5:1
+     WCAG AA floor; this hits ~5:1 while staying the same warm hue. */
+  --warm-gray: #6F675E;
   --border-color: #D4CBBF;
   --border-green: #B8C9A8;
 }
