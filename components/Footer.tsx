@@ -9,6 +9,7 @@ export default function Footer() {
         <li><Link href="/services">Services</Link></li>
         <li><Link href="/menus">Menus</Link></li>
         <li><Link href="/contact">Inquire</Link></li>
+        <li><Link href="/terms">Terms</Link></li>
       </ul>
       <div className="footer-divider"></div>
       <a

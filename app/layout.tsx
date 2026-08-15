@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './styles.css';
 import './admin-invoice.css';
+import './terms-invoice-extras.css';
 
 const SITE_URL = process.env.SITE_URL || 'https://www.mytailoredtaste.com';
 

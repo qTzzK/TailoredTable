@@ -22,17 +22,30 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const emailStatus = result.sent ? 'sent' : result.error === 'not_configured' ? 'skipped_no_api_key' : 'failed';
 
+  const now = new Date().toISOString();
+
+  // Telemetry always lands: this write touches no money and no status.
   try {
     await dbUpdate('invoices', `id=eq.${invoice.id}`, {
-      // The invoice only advances to 'sent' when the email actually went out.
-      ...(result.sent && invoice.status === 'draft' ? { status: 'sent' } : {}),
-      ...(result.sent ? { sent_at: new Date().toISOString() } : {}),
+      ...(result.sent ? { sent_at: now } : {}),
       last_email_status: emailStatus,
       last_email_error: result.sent ? null : result.error || null,
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     });
   } catch (err) {
     console.error('Failed to record email outcome:', err);
+  }
+
+  // The status advance is a separate compare-and-set. The filter re-checks
+  // 'draft' at write time, so a deposit that settled during the Resend round
+  // trip is never stomped back to 'sent' — which would re-offer "Pay in Full"
+  // on top of a deposit the customer had already paid.
+  if (result.sent) {
+    try {
+      await dbUpdate('invoices', `id=eq.${invoice.id}&status=eq.draft`, { status: 'sent', updated_at: now });
+    } catch (err) {
+      console.error('Failed to advance invoice to sent:', err);
+    }
   }
 
   if (result.sent) {

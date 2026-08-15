@@ -1,0 +1,626 @@
+/* ==================================================================
+   TBD LINE ITEMS · NOTES · SERVICE TERMS
+   Extends admin-invoice.css and styles.css; tokens only, no new colors.
+   ================================================================== */
+
+/* styles.css styles EVERY input as a text field — `appearance: none` plus
+   padding, a cream background and a border. On a checkbox that erases the
+   native glyph, leaving a blank rectangle that never appears to tick. Revert
+   to the user-agent rendering, then brand it. Must stay ahead of the
+   component rules below, which only reset `width`. */
+input[type='checkbox'],
+input[type='radio'] {
+  -webkit-appearance: revert;
+  appearance: revert;
+  padding: revert;
+  border: revert;
+  background: revert;
+  border-radius: revert;
+  font-size: revert;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+  accent-color: var(--burgundy);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* ---------------- PUBLIC INVOICE: dates, notes, TBD ---------------- */
+
+.invoice-meta-strong { color: var(--charcoal); font-weight: 600; }
+
+.invoice-item-note {
+  display: block;
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--warm-gray);
+  margin-top: 0.15rem;
+}
+
+.invoice-tbd {
+  font-style: italic;
+  color: var(--warm-gray);
+  letter-spacing: 1px;
+}
+
+.invoice-notes {
+  background: var(--cream);
+  border: 1px solid var(--border-color);
+  padding: 1.1rem 1.25rem;
+  margin-top: 1.75rem;
+}
+
+.invoice-notes-body {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.08rem;
+  color: var(--charcoal);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+
+/* ---------------- SERVICE TERMS BLOCK ---------------- */
+
+.invoice-terms {
+  margin-top: 1.75rem;
+  border: 1px solid var(--border-color);
+  background: var(--cream);
+  padding: 1.25rem 1.35rem;
+}
+
+.invoice-terms-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+
+.invoice-terms-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--burgundy);
+  font-weight: 700;
+  margin: 0;
+}
+
+.invoice-terms-version {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.82rem;
+  color: var(--warm-gray);
+}
+
+.invoice-terms-intro {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--warm-gray);
+  margin: 0 0 0.85rem;
+}
+
+.invoice-terms-list { margin: 0; }
+
+.invoice-terms-clause { margin-bottom: 0.85rem; }
+.invoice-terms-clause:last-child { margin-bottom: 0; }
+
+.invoice-terms-clause dt {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--charcoal);
+  margin-bottom: 0.2rem;
+}
+
+.invoice-terms-clause dd {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--charcoal);
+  margin: 0;
+}
+
+.invoice-terms-closing {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  color: var(--warm-gray);
+  margin: 1rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.invoice-terms-link { color: var(--burgundy); }
+
+/* Compact on-invoice summary: what the terms cover, without the full prose.
+   The clause bodies themselves live in the dialog below. */
+.invoice-terms-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.invoice-terms-topics li {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  color: var(--charcoal);
+  background: var(--off-white);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 0.18rem 0.65rem;
+}
+
+.invoice-terms-open {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.68rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--burgundy);
+  background: none;
+  border: 1px solid var(--burgundy);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.invoice-terms-open:hover {
+  background: var(--burgundy);
+  color: var(--off-white);
+}
+
+/* ---------------- SERVICE TERMS DIALOG ---------------- */
+
+/* The <dialog> element is only the positioning shell — it carries no chrome so
+   the panel inside can own the border, background and scrolling. */
+/* Deliberately viewport-sized rather than content-sized: a dialog box only as
+   wide as its panel never receives the clicks that land beside it, so
+   click-outside-to-close silently does nothing. Filling the viewport and
+   centring the panel inside makes every outside click hit the dialog itself. */
+.invoice-terms-dialog {
+  padding: 1rem;
+  border: none;
+  background: transparent;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  color: var(--charcoal);
+}
+
+/* Only when open — the UA's `display: none` has to keep working when closed.
+   Flex rather than grid on purpose: an auto-sized grid row grows to the full
+   content height, so the panel's `max-height: 100%` would resolve against the
+   overflowing row and never clamp. A flex container's height is definite. */
+.invoice-terms-dialog[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.invoice-terms-dialog::backdrop {
+  background: rgba(44, 44, 44, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.invoice-terms-dialog-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(640px, 100%);
+  max-height: 100%;
+  background: var(--off-white);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 18px 48px rgba(44, 44, 44, 0.22);
+}
+
+.invoice-terms-dialog-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 1.1rem 1.35rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--cream);
+}
+
+/* Pushes the close button to the far edge, whatever the version string. */
+.invoice-terms-dialog-head .invoice-terms-version { margin-right: auto; }
+
+.invoice-terms-close {
+  background: none;
+  border: none;
+  color: var(--warm-gray);
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0 0.2rem;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.invoice-terms-close:hover { color: var(--burgundy); }
+
+/* min-height: 0 so this can shrink below its content inside the column flex
+   panel — without it the head and foot get pushed off a short viewport. */
+.invoice-terms-dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.15rem 1.35rem;
+  overscroll-behavior: contain;
+}
+
+.invoice-terms-dialog-body .invoice-terms-closing { border-top-color: var(--border-color); }
+
+.invoice-terms-dialog-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.85rem 1.35rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--cream);
+}
+
+/* On screen the terms live in a dialog, which a closed <dialog> hides from the
+   printed page entirely. The terms are part of the invoice record, so printing
+   or saving as PDF unfolds them back inline. */
+@media print {
+  .invoice-terms-topics,
+  .invoice-terms-open,
+  .invoice-terms-close,
+  .invoice-terms-dialog-head,
+  .invoice-terms-dialog-foot,
+  /* The section already prints an intro directly above; the dialog carries its
+     own copy for the on-screen modal, and unfolded they would print twice. */
+  .invoice-terms-dialog-body .invoice-terms-intro {
+    display: none;
+  }
+
+  .invoice-terms-dialog {
+    display: block;
+    position: static;
+    width: auto;
+    max-width: none;
+    height: auto;
+    max-height: none;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .invoice-terms-dialog::backdrop { background: none; }
+
+  .invoice-terms-dialog-panel {
+    display: block;
+    width: auto;
+    max-height: none;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .invoice-terms-dialog-body {
+    overflow: visible;
+    padding: 0;
+  }
+
+  .invoice-terms-clause { break-inside: avoid; }
+}
+
+/* ---------------- TERMS ACCEPTANCE GATE ---------------- */
+
+.invoice-terms-accept {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  margin-top: 1.5rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border-color);
+  background: var(--off-white);
+  cursor: pointer;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.03rem;
+  line-height: 1.5;
+  color: var(--charcoal);
+  /* The bare `label` rule in styles.css uppercases and letterspaces every
+     label on the site. That is right for form field labels, but this one is a
+     sentence the customer has to actually read before agreeing to it. */
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Sizing, appearance and accent come from the checkbox reset at the top of
+   this file; only the optical alignment against the first text line is local. */
+.invoice-terms-accept input {
+  margin-top: 0.2rem;
+}
+
+.invoice-terms-accept:has(input:checked) {
+  border-color: var(--border-green);
+  background: var(--green-light);
+}
+
+.invoice-terms-accept:focus-within {
+  outline: 2px solid var(--burgundy);
+  outline-offset: 2px;
+}
+
+.invoice-terms-prior {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  color: var(--warm-gray);
+  margin: 0.5rem 0 0;
+  text-align: center;
+}
+
+.invoice-pay-hint {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--warm-gray);
+  text-align: center;
+  margin: 0.75rem 0 0;
+}
+
+.btn:disabled,
+.btn:disabled:hover,
+.btn-green:disabled:hover {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ---------------- ADMIN: notes, TBD, pricing control ---------------- */
+
+.admin-form textarea {
+  width: 100%;
+  min-height: 130px;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border-color);
+  background: var(--off-white);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.02rem;
+  color: var(--charcoal);
+  resize: vertical;
+}
+
+.admin-form .form-hint,
+.form-hint {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--warm-gray);
+  margin: 0.4rem 0 0;
+  line-height: 1.5;
+}
+
+.admin-notes-preview {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  color: var(--charcoal);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  background: var(--cream);
+  border: 1px solid var(--border-color);
+}
+
+/* TBD switch. The real checkbox stays in the DOM — clipped, not display:none,
+   so it keeps focus and screen-reader semantics — and the track/knob are drawn
+   by the sibling span. column-reverse puts the caption above the track while
+   leaving the input first in source order, which is what lets `:checked ~`
+   reach the caption. */
+/* Must outrank `.admin-form label`, which forces display:block on every label
+   in the form — that override is what flattened the old checkbox row too. */
+.admin-form .line-item-tbd {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32rem;
+  font-family: 'Playfair Display', serif;
+  font-size: 0.6rem;
+  line-height: 1;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  margin-bottom: 0;
+}
+
+.line-item-tbd input[type='checkbox'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.line-item-switch {
+  position: relative;
+  width: 34px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--cream);
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.line-item-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--warm-gray);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.line-item-tbd:hover .line-item-switch { border-color: var(--warm-gray); }
+
+.line-item-tbd input:checked + .line-item-switch {
+  background: var(--burgundy);
+  border-color: var(--burgundy);
+}
+
+.line-item-tbd input:checked + .line-item-switch::after {
+  background: var(--off-white);
+  transform: translateX(16px);
+}
+
+.line-item-tbd input:checked ~ .line-item-tbd-text { color: var(--burgundy); }
+
+.line-item-tbd input:focus-visible + .line-item-switch {
+  outline: 2px solid var(--burgundy-mid);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line-item-switch,
+  .line-item-switch::after { transition: none; }
+}
+
+/* ---------------- PAYMENTS: STRIPE VERIFICATION ---------------- */
+
+.payment-stripe-link {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.66rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--burgundy);
+  white-space: nowrap;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.18s ease;
+}
+
+.payment-stripe-link:hover { border-bottom-color: var(--burgundy); }
+
+.payment-offline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--warm-gray);
+}
+
+.price-item-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 260px;
+}
+
+.price-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.price-item-row input {
+  width: 100px;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border-color);
+  background: var(--off-white);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  color: var(--charcoal);
+}
+
+.price-item-qty {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.9rem;
+  color: var(--warm-gray);
+  white-space: nowrap;
+}
+
+.price-item-notify {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.92rem;
+  color: var(--warm-gray);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+
+/* ---------------- PUBLIC /terms PAGE ---------------- */
+
+.terms-page {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--off-white);
+  border: 1px solid var(--border-color);
+  padding: 3rem 2.75rem;
+}
+
+.terms-intro {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--warm-gray);
+  line-height: 1.7;
+  margin: 0 0 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.terms-list { margin: 0; }
+
+.terms-clause { margin-bottom: 2rem; }
+.terms-clause:last-child { margin-bottom: 0; }
+
+.terms-clause dt {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--charcoal);
+  margin-bottom: 0.5rem;
+}
+
+.terms-clause dd {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: var(--charcoal);
+  margin: 0;
+}
+
+.terms-closing {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--charcoal);
+  line-height: 1.7;
+  margin: 2.5rem 0 0;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.terms-meta {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.92rem;
+  color: var(--warm-gray);
+  margin: 1.25rem 0 0;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 640px) {
+  .invoice-terms-head { flex-direction: column; gap: 0.2rem; }
+  .terms-page { padding: 2rem 1.35rem; }
+  .price-item-control { min-width: 0; }
+}
