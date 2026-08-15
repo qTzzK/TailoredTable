@@ -294,8 +294,8 @@ export default function InvoiceForm() {
             <label htmlFor="service_date">Service date (optional)</label>
             <input type="date" id="service_date" value={serviceDate} onChange={e => setServiceDate(e.target.value)} />
             <p className="form-hint">
-              The day you cook. Fills the real dates into the terms: balance due the day before, deposit forfeited
-              from two days before. Leave blank for meal prep or an unscheduled hold.
+              The day you cook. Fills the real dates into the terms: balance due, guest count locked, and the
+              deposit non-refundable all from two days before. Leave blank for meal prep or an unscheduled hold.
             </p>
           </div>
           <div className="form-group">
@@ -314,7 +314,10 @@ export default function InvoiceForm() {
         <div className="form-group" style={{ maxWidth: '240px' }}>
           <label htmlFor="due_date">Payment due date (optional)</label>
           <input type="date" id="due_date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
-          <p className="form-hint">Only if it differs from the day before service. With a service date set, leave this blank.</p>
+          <p className="form-hint">
+            Only to override the default, which is two days before service. With a service date set, leave this
+            blank.
+          </p>
         </div>
       </div>
 

@@ -63,13 +63,19 @@ export function longDate(iso: string | null): string | null {
 
 /** "by Tuesday, September 1, 2026" or the generic rule when no date is known. */
 export function balanceDuePhrase(terms: Pick<RenderedTerms, 'balanceDueLabel'>): string {
-  return terms.balanceDueLabel ? `by ${terms.balanceDueLabel}` : '24 hours before your service date';
+  return terms.balanceDueLabel ? `by ${terms.balanceDueLabel}` : '48 hours before your service date';
 }
 
-/** Explicit due_date wins; otherwise the day before service. Never stored. */
+// Money, cancellation, and the guest-count lock all fall on the SAME day — two
+// days before service. They were 24/48/48, which had the chef buying groceries
+// a day before the balance was due, while the cancellation clause justified
+// keeping the deposit on the grounds that the shopping was already done.
+// One deadline removes the contradiction and is far easier to explain.
+
+/** Explicit due_date wins; otherwise two days before service. Never stored. */
 export function balanceDueDate(inv: Pick<Invoice, 'due_date' | 'service_date'>): string | null {
   if (inv.due_date) return inv.due_date;
-  return inv.service_date ? shiftDate(inv.service_date, -1) : null;
+  return inv.service_date ? shiftDate(inv.service_date, -2) : null;
 }
 
 /** Two calendar days before service — the "within 48 hours" line. */
@@ -131,7 +137,7 @@ function balanceClause(invoice: Invoice, balanceLabel: string | null, derived: b
   const lead = pendingDeposit > 0 ? 'After the deposit, your remaining balance of' : 'Your remaining balance of';
 
   if (balanceLabel) {
-    const suffix = derived ? ' — the day before your service date' : '';
+    const suffix = derived ? ' — two days before your service date' : '';
     return {
       id: 'balance',
       title: 'Final payment',
@@ -141,7 +147,7 @@ function balanceClause(invoice: Invoice, balanceLabel: string | null, derived: b
   return {
     id: 'balance',
     title: 'Final payment',
-    body: `${lead} ${outstanding}${plusGroceries} is due 24 hours before your service date. I will confirm the exact date with you as soon as we have one on the calendar. ${tail}`,
+    body: `${lead} ${outstanding}${plusGroceries} is due 48 hours before your service date. I will confirm the exact date with you as soon as we have one on the calendar. ${tail}`,
   };
 }
 
@@ -257,7 +263,7 @@ export function genericTerms(): RenderedTerms {
       {
         id: 'balance',
         title: 'Final payment',
-        body: 'Your remaining balance, plus the actual cost of groceries, is due 24 hours before your service date. I shop right before I cook, so the final payment needs to land before I do.',
+        body: 'Your remaining balance, plus the actual cost of groceries, is due 48 hours before your service date — the same deadline as the guest count and any cancellation. I shop right before I cook, so the final payment needs to land before I do.',
       },
       GROCERIES_CLAUSE,
       {

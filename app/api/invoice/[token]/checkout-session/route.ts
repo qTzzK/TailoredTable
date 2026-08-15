@@ -103,7 +103,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
                 terms_of_service_acceptance: {
                   message:
                     `I agree to the [Tailored Taste Service Terms](${siteUrl()}/terms) — the balance ` +
-                    `and grocery costs are due 24 hours before the service date, and cancellations ` +
+                    `and grocery costs are due 48 hours before the service date, and cancellations ` +
                     `within 48 hours of the service date forfeit the deposit.`,
                 },
               },
