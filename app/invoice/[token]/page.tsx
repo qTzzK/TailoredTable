@@ -33,6 +33,12 @@ const PAY_LABEL: Record<string, (amount: string) => string> = {
   balance: amount => `Pay Balance (${amount})`,
 };
 
+const ZELLE_LABEL: Record<string, (amount: string) => string> = {
+  deposit: amount => `Zelle the Deposit (${amount})`,
+  full: amount => `Zelle in Full (${amount})`,
+  balance: amount => `Zelle the Balance (${amount})`,
+};
+
 export default async function InvoicePage({
   params,
   searchParams,
@@ -91,9 +97,11 @@ export default async function InvoicePage({
 
   const options: PayOption[] = allowedPaymentTypes(invoice).map(type => {
     const chargeCents = paymentAmountCents(invoice, type);
+    const amount = formatCents(chargeCents, invoice.currency);
     return {
       type: type as PayOption['type'],
-      label: PAY_LABEL[type](formatCents(chargeCents, invoice.currency)),
+      label: PAY_LABEL[type](amount),
+      zelleLabel: ZELLE_LABEL[type](amount),
       chargeCents,
     };
   });

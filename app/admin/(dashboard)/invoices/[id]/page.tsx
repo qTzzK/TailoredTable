@@ -256,7 +256,10 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 {acceptances.map(a => (
                   <tr key={a.id}>
                     <td>{fmtDateTime(a.accepted_at)}</td>
-                    <td>{a.payment_type}</td>
+                    <td>
+                      {a.payment_type}
+                      {a.snapshot?.method === 'zelle' && ' · Zelle'}
+                    </td>
                     <td>{a.terms_version}</td>
                     <td>{a.ip ?? '—'}</td>
                   </tr>

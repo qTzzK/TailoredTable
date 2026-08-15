@@ -2,7 +2,7 @@ import 'server-only';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { dbSelect } from './db';
 import { hasUnpricedItems, lineAmountCents } from './types';
-import type { Invoice, LineItem, PaymentType } from './types';
+import type { CustomerPaymentType, Invoice, LineItem, PaymentType } from './types';
 
 export { hasUnpricedItems };
 
@@ -223,7 +223,7 @@ export function validateCreateInvoice(body: Record<string, unknown>): CreateInvo
 // which the remaining items can never be priced.
 // ---------------------------------------------------------------------------
 
-export function allowedPaymentTypes(invoice: Invoice): PaymentType[] {
+export function allowedPaymentTypes(invoice: Invoice): CustomerPaymentType[] {
   const unpriced = hasUnpricedItems(invoice);
   switch (invoice.status) {
     case 'draft':

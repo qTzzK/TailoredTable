@@ -7,6 +7,8 @@ import { useEffect, useRef, useState } from 'react';
 export interface PayOption {
   type: 'deposit' | 'full' | 'balance';
   label: string;
+  /** Same amount, worded for the Zelle row ("Zelle the Deposit ($250)"). */
+  zelleLabel: string;
   /** Echoed back on checkout purely as a staleness gate — never the charge. */
   chargeCents: number;
 }
@@ -40,6 +42,10 @@ export default function InvoicePayment({
   // Never pre-checked and never persisted: each payment needs its own
   // deliberate acceptance, which is what makes the record meaningful.
   const [accepted, setAccepted] = useState(false);
+  // Arrives from the server only after the acceptance row is written, so the
+  // number cannot be read out of the page source without agreeing first.
+  const [zelle, setZelle] = useState<{ phone: string; amountLabel: string } | null>(null);
+  const [zelleBusy, setZelleBusy] = useState(false);
 
   // Returning from checkout: confirm the session's outcome, then refresh so
   // the server re-renders from (webhook-updated) DB state.
@@ -120,6 +126,43 @@ export default function InvoicePayment({
     }
   }
 
+  async function revealZelle(option: PayOption) {
+    if (!accepted || zelleBusy) return;
+    setError(null);
+    setZelleBusy(true);
+    try {
+      const res = await fetch(`/api/invoice/${encodeURIComponent(token)}/accept-terms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          payment_type: option.type,
+          accept_terms: true,
+          terms_version: termsVersion,
+          expected_charge_cents: option.chargeCents,
+          expected_terms_digest: termsDigest,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.zellePhone) {
+        // Same staleness handling as the card path: a reprice while the page
+        // sat open means the customer is looking at an amount that no longer
+        // exists, so reload rather than send them off to Zelle with it.
+        if (data?.stale) {
+          setError(`${data.error} Reloading…`);
+          setTimeout(() => router.refresh(), 1800);
+          return;
+        }
+        setError(data?.error || 'Unable to show the Zelle details. Please try again.');
+        return;
+      }
+      setZelle({ phone: data.zellePhone, amountLabel: data.amountLabel });
+    } catch {
+      setError('Unable to show the Zelle details. Please try again.');
+    } finally {
+      setZelleBusy(false);
+    }
+  }
+
   function changeAmount() {
     checkoutRef.current?.destroy();
     checkoutRef.current = null;
@@ -174,6 +217,33 @@ export default function InvoicePayment({
               Check the box above to continue to payment.
             </p>
           )}
+
+          <div className="invoice-zelle">
+            {zelle ? (
+              <p className="invoice-zelle-note" aria-live="polite">
+                Zelle <strong>{zelle.amountLabel}</strong> to <strong>{zelle.phone}</strong> with your
+                name in the note, and I&apos;ll mark this invoice paid as soon as it lands. Your
+                acceptance of the service terms is on file.
+              </p>
+            ) : (
+              <>
+                <p className="invoice-zelle-note">Prefer Zelle? Agree to the terms above, then pick an amount.</p>
+                <div className="invoice-zelle-actions">
+                  {options.map(option => (
+                    <button
+                      key={option.type}
+                      type="button"
+                      className="btn btn-outline btn-sm"
+                      disabled={!accepted || zelleBusy}
+                      onClick={() => revealZelle(option)}
+                    >
+                      {option.zelleLabel}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </>
       )}
       {error && (

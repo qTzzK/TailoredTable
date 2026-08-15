@@ -3,6 +3,9 @@
 
 export type InvoiceStatus = 'draft' | 'sent' | 'deposit_paid' | 'paid' | 'void';
 export type PaymentType = 'deposit' | 'balance' | 'full' | 'manual';
+/** What a customer can choose on the invoice. 'manual' is an admin-only
+ *  settlement and is rejected by the terms_acceptances check constraint. */
+export type CustomerPaymentType = Exclude<PaymentType, 'manual'>;
 export type PaymentStatus = 'pending' | 'succeeded' | 'failed' | 'expired';
 
 export type ItemPricing = 'priced' | 'tbd' | 'waived';
@@ -87,7 +90,7 @@ export interface TermsAcceptance {
   id: string;
   invoice_id: string;
   terms_version: string;
-  payment_type: 'deposit' | 'balance' | 'full';
+  payment_type: CustomerPaymentType;
   accepted_at: string;
   ip: string | null;
   user_agent: string | null;

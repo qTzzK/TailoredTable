@@ -14,6 +14,10 @@ import type { Invoice } from './types';
 
 export const TERMS_VERSION = '2026-08-14';
 
+/** Shown on the invoice as an alternative to card payment. Zelle settlements
+ *  land outside Stripe, so they are recorded with "Mark paid" in the admin. */
+export const ZELLE_PHONE = '(305) 690-8521';
+
 export interface TermsClause {
   id: string;
   title: string;
@@ -30,9 +34,8 @@ export interface RenderedTerms {
   cancelCutoffLabel: string | null;
 }
 
-const INTRO = 'The short version, so there are no surprises:';
-const CLOSING =
-  'Paying this invoice means these terms work for you. Questions about any of it? Just ask — I would much rather sort it out now.';
+const INTRO = 'The short version, in plain language:';
+const CLOSING = 'Paying this invoice means these terms work for you. Questions about any of it? Just ask.';
 
 // ---------------------------------------------------------------------------
 // Date helpers. All dates are plain YYYY-MM-DD and handled in UTC so a
@@ -145,7 +148,7 @@ function balanceClause(invoice: Invoice, balanceLabel: string | null, derived: b
 const GROCERIES_CLAUSE: TermsClause = {
   id: 'groceries',
   title: 'Groceries & TBD items',
-  body: 'Anything listed as TBD — usually groceries — is billed at actual cost. I shop, I keep the receipts, and I add the real amounts to this invoice as their own line items before the balance is due. No markup and no surprise fees, and you are welcome to ask for the receipts.',
+  body: 'Anything listed as TBD — usually groceries — is billed at actual cost, with no markup. I shop, I keep the receipts, and I add the real amounts to this invoice as their own line items before the balance is due.',
 };
 
 function cancellationClause(invoice: Invoice, cutoffLabel: string | null): TermsClause {
@@ -184,7 +187,7 @@ const HEADCOUNT_CLAUSE: TermsClause = {
 const ONSITE_CLAUSE: TermsClause = {
   id: 'onsite',
   title: 'What I need on the day',
-  body: 'For in-home service I need kitchen access at the agreed time, plus a working stove or oven, a sink, and some counter space. If I arrive and cannot get in or cannot cook, I will do everything I can to make it work, but the service is treated as delivered and the invoice stands.',
+  body: 'For in-home service I need kitchen access at the agreed time, plus a working stove or oven, a sink, and some counter space. That is the whole list — tell me anything unusual about your kitchen ahead of time and I will plan around it. Because your date is held for you and the shopping is done in advance, a booking I am not able to cook is still invoiced in full.',
 };
 
 /** Extra clauses shown only on the public /terms page, not per invoice. */
@@ -192,12 +195,15 @@ export const SITE_ONLY_CLAUSES: TermsClause[] = [
   {
     id: 'payments',
     title: 'Payments',
-    body: 'Invoices are paid by card through Stripe, from the private link I send you. I never see or store your card details, and I will never ask you to pay by any other method — if you get a message asking you to, it is not from me.',
+    // Deliberately does not print the Zelle number: this page is public, while
+    // the invoice it points to is token-gated. The anti-impersonation line only
+    // works if the number lives somewhere a stranger cannot read.
+    body: 'Invoices are paid by card through Stripe, from the private link I send you, or by Zelle to the number shown on your invoice. I never see or store your card details. Those are the only two ways I will ever ask you to pay — if you get a request to pay some other way, or to a different Zelle number, it is not from me.',
   },
   {
     id: 'allergies',
     title: 'Allergies & dietary needs',
-    body: 'Tell me up front and I will build the menu around them. I cook in home kitchens, so while I take allergies seriously and keep prep separate, I cannot guarantee a completely allergen-free environment.',
+    body: 'Tell me up front and I will build the menu around them — allergies and dietary needs shape the planning from the start, and I keep prep separate. One thing to know: I cook in home kitchens rather than a controlled facility, so a fully allergen-free environment is not something I am able to promise.',
   },
   {
     id: 'area',

@@ -366,6 +366,40 @@ input[type='radio'] {
   margin: 0.75rem 0 0;
 }
 
+/* Sits under the card buttons, so it reads as the second option rather than
+   competing with them: separated by a rule, quieter type, no accent colour. */
+.invoice-zelle {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.invoice-zelle-note {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--warm-gray);
+  text-align: center;
+  margin: 0 auto;
+  max-width: 30rem;
+}
+
+/* The number and the amount are what the customer has to copy across to
+   another app, so they get the contrast and never break across lines. */
+.invoice-zelle-note strong {
+  color: var(--charcoal);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.invoice-zelle-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 0.85rem;
+}
+
 .btn:disabled,
 .btn:disabled:hover,
 .btn-green:disabled:hover {
