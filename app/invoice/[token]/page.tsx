@@ -133,6 +133,10 @@ export default async function InvoicePage({
 
   return (
     <div className="invoice-shell">
+      {/* Opens the Stripe connections during HTML parse rather than at
+          hydration, so the checkout iframe has a warm socket to load over. */}
+      <link rel="preconnect" href="https://js.stripe.com" />
+      <link rel="preconnect" href="https://checkout.stripe.com" />
       {brand}
       <div className="invoice-card">
         <div className="invoice-card-header">

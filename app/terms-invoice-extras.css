@@ -400,6 +400,43 @@ input[type='radio'] {
   margin-top: 0.85rem;
 }
 
+/* Holds the space the Stripe iframe is about to take, so the card does not
+   collapse and then jump back open when checkout mounts. */
+.invoice-checkout-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 8rem;
+  margin-top: 1.75rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  color: var(--warm-gray);
+}
+
+.invoice-spinner {
+  width: 1.05rem;
+  height: 1.05rem;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--burgundy);
+  border-radius: 50%;
+  animation: invoice-spin 0.7s linear infinite;
+}
+
+@keyframes invoice-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Respects a reduced-motion preference: the message still says what is
+   happening, so the spin itself is decoration. */
+@media (prefers-reduced-motion: reduce) {
+  .invoice-spinner {
+    animation-duration: 2.5s;
+  }
+}
+
 .btn:disabled,
 .btn:disabled:hover,
 .btn-green:disabled:hover {
