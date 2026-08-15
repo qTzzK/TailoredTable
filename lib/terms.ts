@@ -12,7 +12,7 @@ import { formatCents } from './money';
 import { hasUnpricedItems } from './types';
 import type { Invoice } from './types';
 
-export const TERMS_VERSION = '2026-08-12';
+export const TERMS_VERSION = '2026-08-14';
 
 export interface TermsClause {
   id: string;
@@ -187,12 +187,6 @@ const ONSITE_CLAUSE: TermsClause = {
   body: 'For in-home service I need kitchen access at the agreed time, plus a working stove or oven, a sink, and some counter space. If I arrive and cannot get in or cannot cook, I will do everything I can to make it work, but the service is treated as delivered and the invoice stands.',
 };
 
-const CONCERNS_CLAUSE: TermsClause = {
-  id: 'concerns',
-  title: 'If something is not right',
-  body: 'Please tell me — that day if you can, and within 7 days at the latest. I would far rather make it right with you directly than have you take it up with your bank. Reply to your invoice email or message me on Instagram; I answer within 24 hours.',
-};
-
 /** Extra clauses shown only on the public /terms page, not per invoice. */
 export const SITE_ONLY_CLAUSES: TermsClause[] = [
   {
@@ -230,7 +224,7 @@ export function buildTerms(invoice: Invoice): RenderedTerms {
   clauses.push(balanceClause(invoice, balanceDueLabel, derived));
   if (hasUnpricedItems(invoice)) clauses.push(GROCERIES_CLAUSE);
   clauses.push(cancellationClause(invoice, cancelCutoffLabel));
-  clauses.push(HEADCOUNT_CLAUSE, ONSITE_CLAUSE, CONCERNS_CLAUSE);
+  clauses.push(HEADCOUNT_CLAUSE, ONSITE_CLAUSE);
 
   return {
     version: TERMS_VERSION,
@@ -267,7 +261,6 @@ export function genericTerms(): RenderedTerms {
       },
       HEADCOUNT_CLAUSE,
       ONSITE_CLAUSE,
-      CONCERNS_CLAUSE,
       ...SITE_ONLY_CLAUSES,
     ],
     closing: CLOSING,

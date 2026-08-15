@@ -70,7 +70,7 @@ export default async function InvoicePage({
         {brand}
         <div className="invoice-card">
           <div className="invoice-card-header">
-            <span className="invoice-number">Invoice #{invoice.invoice_number}</span>
+            <span className="invoice-number">Invoice</span>
           </div>
           <div className="invoice-status-note muted">
             This invoice is no longer active. Please contact Tailored Taste with any questions.
@@ -128,7 +128,7 @@ export default async function InvoicePage({
       {brand}
       <div className="invoice-card">
         <div className="invoice-card-header">
-          <span className="invoice-number">Invoice #{invoice.invoice_number}</span>
+          <span className="invoice-number">Invoice</span>
           <div className="invoice-meta">
             Issued {fmtDate(invoice.created_at)}
             {terms.serviceDateLabel && (
