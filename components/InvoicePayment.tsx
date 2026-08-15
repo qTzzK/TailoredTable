@@ -227,7 +227,11 @@ export default function InvoicePayment({
               </p>
             ) : (
               <>
-                <p className="invoice-zelle-note">Prefer Zelle? Agree to the terms above, then pick an amount.</p>
+                <p className="invoice-zelle-note">
+                  {options.length > 1
+                    ? 'Prefer Zelle? Agree to the terms above, then pick an amount.'
+                    : 'Prefer Zelle? Agree to the terms above to see where to send it.'}
+                </p>
                 <div className="invoice-zelle-actions">
                   {options.map(option => (
                     <button
