@@ -9,6 +9,9 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
           Tailored Taste <span>Admin</span>
         </Link>
         <div className="admin-header-actions">
+          <Link href="/admin/email/new" className="btn btn-outline btn-sm">
+            Compose Email
+          </Link>
           <Link href="/admin/invoices/new" className="btn btn-primary btn-sm">
             New Invoice
           </Link>

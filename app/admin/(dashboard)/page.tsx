@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import InvoiceTable from '@/components/admin/InvoiceTable';
 import PaymentsTable, { type PaymentWithInvoice } from '@/components/admin/PaymentsTable';
+import SentEmailsTable, { type SentEmailWithInvoice } from '@/components/admin/SentEmailsTable';
 import { dbSelect } from '@/lib/db';
 import { formatCents } from '@/lib/money';
 import { isAdminSession } from '@/lib/session';
@@ -14,11 +15,15 @@ const TABS = [
   { key: 'active', label: 'Active' },
   { key: 'completed', label: 'Completed' },
   { key: 'payments', label: 'Payments' },
+  { key: 'emails', label: 'Emails' },
   { key: 'void', label: 'Void' },
 ] as const;
 
-// The invoice tabs filter by lifecycle status; 'payments' is a different query
-// entirely — money actually received, one row per settlement.
+const TAB_TITLES: Record<string, string> = { payments: 'Payments', emails: 'Emails' };
+
+// The invoice tabs filter by lifecycle status; 'payments' and 'emails' are
+// different queries entirely — money actually received, and emails composed
+// from the admin.
 const TAB_STATUSES: Record<string, InvoiceStatus[]> = {
   active: ['draft', 'sent', 'deposit_paid'],
   completed: ['paid'],
@@ -40,7 +45,7 @@ export default async function AdminDashboard({
   return (
     <>
       <div className="admin-title-row">
-        <h1 className="admin-title">{activeTab.key === 'payments' ? 'Payments' : 'Invoices'}</h1>
+        <h1 className="admin-title">{TAB_TITLES[activeTab.key] ?? 'Invoices'}</h1>
       </div>
 
       {/* Deliberately a div: styles.css pins bare <nav> elements to the top
@@ -57,8 +62,41 @@ export default async function AdminDashboard({
         ))}
       </div>
 
-      {activeTab.key === 'payments' ? <PaymentsPanel /> : <InvoicePanel tabKey={activeTab.key} label={activeTab.label} />}
+      {activeTab.key === 'payments' ? (
+        <PaymentsPanel />
+      ) : activeTab.key === 'emails' ? (
+        <EmailsPanel />
+      ) : (
+        <InvoicePanel tabKey={activeTab.key} label={activeTab.label} />
+      )}
     </>
+  );
+}
+
+async function EmailsPanel() {
+  // Tolerant of the sent_emails migration not having run yet.
+  const emails = await dbSelect<SentEmailWithInvoice>(
+    'sent_emails',
+    'order=created_at.desc&limit=100&select=*,invoices(id,invoice_number,customer_name)'
+  ).catch(err => {
+    console.error('Failed to load sent_emails:', err);
+    return [] as SentEmailWithInvoice[];
+  });
+
+  return (
+    <div className="admin-table-wrap">
+      {emails.length === 0 ? (
+        <p className="admin-empty">
+          No emails composed yet.{' '}
+          <Link href="/admin/email/new" style={{ color: 'var(--burgundy)' }}>
+            Write one
+          </Link>
+          .
+        </p>
+      ) : (
+        <SentEmailsTable emails={emails} showInvoice />
+      )}
+    </div>
   );
 }
 

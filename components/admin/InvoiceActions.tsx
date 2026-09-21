@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { InvoiceStatus } from '@/lib/types';
@@ -94,6 +95,11 @@ export default function InvoiceActions({ invoiceId, status, invoiceUrl, customer
             {busy === 'void' ? 'Voiding…' : 'Void Invoice'}
           </button>
         )}
+        {/* Always available: a contract or follow-up is just as likely after
+            the invoice is paid as before. */}
+        <Link href={`/admin/email/new?invoice=${invoiceId}`} className="btn btn-outline btn-sm">
+          Email Customer
+        </Link>
       </div>
 
       {error && <p className="admin-error" style={{ margin: '1rem 0 0' }}>{error}</p>}

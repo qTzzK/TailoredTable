@@ -137,3 +137,28 @@ create table public.login_attempts (
 create index login_attempts_ip_time_idx on public.login_attempts (ip, created_at);
 
 alter table public.login_attempts enable row level security;
+
+-- ---------------------------------------------------------------------------
+-- Admin-composed emails (contracts, follow-ups). Attachment bytes live in
+-- Resend; this is the who/what/when record and dispute evidence.
+-- ---------------------------------------------------------------------------
+create table public.sent_emails (
+  id            uuid primary key default gen_random_uuid(),
+  invoice_id    uuid references public.invoices(id) on delete set null,
+  from_address  text not null,
+  to_addresses  text[] not null,
+  cc_addresses  text[] not null default '{}',
+  reply_to      text,
+  subject       text not null,
+  body_text     text not null,
+  attachments   jsonb not null default '[]',   -- [{filename, size, content_type}]
+  status        text not null check (status in ('sending','sent','failed')),
+  resend_id     text,
+  error         text,
+  created_at    timestamptz not null default now()
+);
+
+create index sent_emails_invoice_idx on public.sent_emails (invoice_id, created_at desc);
+create index sent_emails_created_idx on public.sent_emails (created_at desc);
+
+alter table public.sent_emails enable row level security;

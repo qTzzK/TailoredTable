@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import InvoiceActions from '@/components/admin/InvoiceActions';
 import { StripeCell } from '@/components/admin/PaymentsTable';
 import PriceItemControl from '@/components/admin/PriceItemControl';
+import SentEmailsTable from '@/components/admin/SentEmailsTable';
 import { dbSelect } from '@/lib/db';
 import { siteUrl } from '@/lib/env';
 import { getInvoiceById } from '@/lib/invoices';
@@ -11,7 +12,7 @@ import { isAdminSession } from '@/lib/session';
 import { stripeDashboardBase } from '@/lib/stripe-dashboard';
 import { balanceDueDate } from '@/lib/terms';
 import { hasUnpricedItems, lineAmountCents } from '@/lib/types';
-import type { Payment, TermsAcceptance } from '@/lib/types';
+import type { Payment, SentEmail, TermsAcceptance } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,6 +44,15 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     'terms_acceptances',
     `invoice_id=eq.${invoice.id}&order=accepted_at.desc`
   );
+  // Tolerant of the sent_emails migration not having run yet: the page must
+  // keep working, so a failed read renders as "no emails" rather than a 500.
+  const sentEmails = await dbSelect<SentEmail>(
+    'sent_emails',
+    `invoice_id=eq.${invoice.id}&order=created_at.desc&limit=100`
+  ).catch(err => {
+    console.error('Failed to load sent_emails:', err);
+    return [] as SentEmail[];
+  });
   const invoiceUrl = `${siteUrl()}/invoice/${invoice.token}`;
   const remaining = invoice.total_cents - invoice.amount_paid_cents;
   const unpriced = hasUnpricedItems(invoice);
@@ -200,6 +210,25 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         invoiceUrl={invoiceUrl}
         customerEmail={invoice.customer_email}
       />
+
+      <div className="admin-card">
+        <h2>Emails Sent</h2>
+        {sentEmails.length === 0 ? (
+          <p className="admin-empty" style={{ padding: '1rem 0' }}>
+            No emails composed for this customer yet.{' '}
+            <Link href={`/admin/email/new?invoice=${invoice.id}`} style={{ color: 'var(--burgundy)' }}>
+              Send one
+            </Link>
+            .
+          </p>
+        ) : (
+          <SentEmailsTable emails={sentEmails} />
+        )}
+        <p className="admin-note">
+          Emails you write from the admin — contracts, follow-ups. The automatic invoice and receipt emails are not
+          listed here. Attachments are kept in the Resend dashboard.
+        </p>
+      </div>
 
       <div className="admin-card">
         <h2>Payments</h2>

@@ -290,6 +290,51 @@
   color: var(--charcoal);
 }
 
+.admin-form select,
+.admin-form textarea.mail-body {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border-color);
+  background: var(--off-white);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.02rem;
+  color: var(--charcoal);
+}
+
+.admin-form textarea.mail-body { min-height: 280px; line-height: 1.55; resize: vertical; }
+
+/* Compose email: local part + fixed domain suffix. */
+.mail-from-row { display: flex; align-items: center; gap: 0.5rem; }
+.mail-from-row input { flex: 1; min-width: 0; }
+.mail-from-domain {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  color: var(--warm-gray);
+  white-space: nowrap;
+}
+
+.admin-form input[type='file'] {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  color: var(--charcoal);
+}
+
+.mail-files { list-style: none; padding: 0; margin: 0.75rem 0 0; }
+.mail-files li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 1rem;
+}
+.mail-files .mail-file-size { color: var(--warm-gray); margin-left: 0.4rem; }
+.mail-files .mail-files-total { border-bottom: 0; color: var(--warm-gray); font-size: 0.95rem; }
+
+.mail-status-sent { color: var(--green); }
+.mail-status-failed { color: var(--burgundy); white-space: normal; }
+
 .admin-form label {
   display: block;
   font-family: 'Playfair Display', serif;

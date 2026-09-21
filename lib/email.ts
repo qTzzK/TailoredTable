@@ -22,17 +22,33 @@ export const escapeHtml = (str: unknown): string =>
 
 export interface SendResult {
   sent: boolean;
+  /** Resend's message id on success. */
+  id?: string;
   error?: string;
 }
 
+export interface EmailAttachment {
+  filename: string;
+  /** Base64-encoded file bytes. */
+  content: string;
+  content_type?: string;
+}
+
 export async function sendEmail(opts: {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
+  /** Plain-text alternative. Resend derives one from the HTML when omitted. */
+  text?: string;
+  /** Overrides CONTACT_FROM. Must be an address at a domain verified in Resend. */
+  from?: string;
+  cc?: string[];
+  bcc?: string[];
   replyTo?: string;
+  attachments?: EmailAttachment[];
 }): Promise<SendResult> {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.CONTACT_FROM || 'Tailored Taste <onboarding@resend.dev>';
+  const from = opts.from || process.env.CONTACT_FROM || 'Tailored Taste <onboarding@resend.dev>';
 
   if (!apiKey) {
     console.error('sendEmail skipped: RESEND_API_KEY not configured.');
@@ -48,18 +64,38 @@ export async function sendEmail(opts: {
       },
       body: JSON.stringify({
         from,
-        to: [opts.to],
+        to: Array.isArray(opts.to) ? opts.to : [opts.to],
+        ...(opts.cc?.length ? { cc: opts.cc } : {}),
+        ...(opts.bcc?.length ? { bcc: opts.bcc } : {}),
         ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
         subject: opts.subject,
         html: opts.html,
+        ...(opts.text ? { text: opts.text } : {}),
+        ...(opts.attachments?.length ? { attachments: opts.attachments } : {}),
       }),
     });
     if (!res.ok) {
       const body = await res.text();
       console.error(`Resend error: ${res.status} ${body}`);
-      return { sent: false, error: `Resend error: ${res.status}` };
+      // Surface Resend's own message (e.g. "domain is not verified") — it is
+      // the one thing the admin needs to fix the problem.
+      let detail = '';
+      try {
+        const parsed = JSON.parse(body) as { message?: unknown };
+        if (typeof parsed.message === 'string') detail = `: ${parsed.message.slice(0, 200)}`;
+      } catch {
+        /* non-JSON error body */
+      }
+      return { sent: false, error: `Resend error: ${res.status}${detail}` };
     }
-    return { sent: true };
+    let id: string | undefined;
+    try {
+      const parsed = (await res.json()) as { id?: unknown };
+      if (typeof parsed.id === 'string') id = parsed.id;
+    } catch {
+      /* a 2xx without a body still counts as sent */
+    }
+    return { sent: true, id };
   } catch (err) {
     console.error('Resend request failed:', err);
     return { sent: false, error: err instanceof Error ? err.message : 'send_failed' };

@@ -86,6 +86,32 @@ export interface Payment {
   paid_at: string | null;
 }
 
+export type SentEmailStatus = 'sending' | 'sent' | 'failed';
+
+/** Metadata only — the bytes live in Resend. */
+export interface SentEmailAttachment {
+  filename: string;
+  size: number;
+  content_type: string;
+}
+
+/** An admin-composed email (contract, follow-up), one row per send attempt. */
+export interface SentEmail {
+  id: string;
+  invoice_id: string | null;
+  from_address: string;
+  to_addresses: string[];
+  cc_addresses: string[];
+  reply_to: string | null;
+  subject: string;
+  body_text: string;
+  attachments: SentEmailAttachment[];
+  status: SentEmailStatus;
+  resend_id: string | null;
+  error: string | null;
+  created_at: string;
+}
+
 export interface TermsAcceptance {
   id: string;
   invoice_id: string;
