@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
@@ -34,8 +35,16 @@ export default function ComposeEmailForm({ domain, defaults }: Props) {
   // Remounting the <input type="file"> is the only reliable way to clear it.
   const [fileInputKey, setFileInputKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Set after a successful send: the form is replaced by a confirmation
+  // screen so there is no way to mistake "sent" for "nothing happened".
+  const [sent, setSent] = useState<{
+    from: string;
+    to: string;
+    cc: string;
+    subject: string;
+    attachments: string[];
+  } | null>(null);
 
   const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
   const presetKey = SENDER_PRESETS.find(p => p.name === fromName && p.local === fromLocal)?.local ?? 'custom';
@@ -78,10 +87,18 @@ export default function ComposeEmailForm({ domain, defaults }: Props) {
     setFiles(prev => prev.filter((_, i) => i !== index));
   }
 
+  function startAnother() {
+    setSent(null);
+    setError(null);
+    setBody('');
+    setFiles([]);
+    setFileInputKey(k => k + 1);
+    window.scrollTo({ top: 0 });
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setNotice(null);
     setBusy(true);
 
     const form = new FormData();
@@ -99,12 +116,14 @@ export default function ComposeEmailForm({ domain, defaults }: Props) {
       const res = await fetch('/api/admin/email/send', { method: 'POST', body: form });
       const data = await res.json().catch(() => null);
       if (res.ok && data?.ok) {
-        setNotice(data.notice || 'Sent.');
-        // Clear what was sent so a second click can't send the same contract
-        // twice; keep the addresses and subject for a quick follow-up.
-        setBody('');
-        setFiles([]);
-        setFileInputKey(k => k + 1);
+        setSent({
+          from: `${fromName.trim() ? `${fromName.trim()} ` : ''}<${fromLocal}@${domain}>`,
+          to,
+          cc,
+          subject,
+          attachments: files.map(f => f.name),
+        });
+        window.scrollTo({ top: 0 });
         router.refresh();
       } else {
         setError(data?.error || 'The email failed to send.');
@@ -113,6 +132,51 @@ export default function ComposeEmailForm({ domain, defaults }: Props) {
       setError('The email failed to send.');
     }
     setBusy(false);
+  }
+
+  if (sent) {
+    return (
+      <div className="admin-card mail-sent-card">
+        <h2>Email sent</h2>
+        <div className="admin-detail-grid">
+          <div>
+            <p className="admin-detail-label">From</p>
+            <p className="admin-detail-value">{sent.from}</p>
+          </div>
+          <div>
+            <p className="admin-detail-label">To</p>
+            <p className="admin-detail-value">{sent.to}</p>
+          </div>
+          {sent.cc && (
+            <div>
+              <p className="admin-detail-label">Cc</p>
+              <p className="admin-detail-value">{sent.cc}</p>
+            </div>
+          )}
+          <div>
+            <p className="admin-detail-label">Subject</p>
+            <p className="admin-detail-value">{sent.subject}</p>
+          </div>
+          <div>
+            <p className="admin-detail-label">Attachments</p>
+            <p className="admin-detail-value">{sent.attachments.length ? sent.attachments.join(', ') : 'None'}</p>
+          </div>
+        </div>
+        <div className="admin-actions-row" style={{ marginTop: '1.5rem' }}>
+          {defaults.invoiceId && (
+            <Link href={`/admin/invoices/${defaults.invoiceId}`} className="btn btn-primary btn-sm">
+              Back to invoice
+            </Link>
+          )}
+          <button type="button" className="btn btn-outline btn-sm" onClick={startAnother}>
+            Send another email
+          </button>
+          <Link href="/admin?tab=emails" className="btn btn-outline btn-sm">
+            View all sent emails
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -264,7 +328,6 @@ export default function ComposeEmailForm({ domain, defaults }: Props) {
           {busy ? 'Sending…' : files.length ? `Send with ${files.length} attachment${files.length === 1 ? '' : 's'}` : 'Send Email'}
         </button>
         {error && <p className="admin-error" style={{ margin: 0 }}>{error}</p>}
-        {notice && <p className="admin-note" style={{ margin: 0 }}>{notice}</p>}
       </div>
     </form>
   );

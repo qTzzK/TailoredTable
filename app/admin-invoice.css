@@ -332,6 +332,9 @@
 .mail-files .mail-file-size { color: var(--warm-gray); margin-left: 0.4rem; }
 .mail-files .mail-files-total { border-bottom: 0; color: var(--warm-gray); font-size: 0.95rem; }
 
+.mail-sent-card { border-left: 4px solid var(--green); }
+.mail-sent-card h2 { color: var(--green); }
+
 .mail-status-sent { color: var(--green); }
 .mail-status-failed { color: var(--burgundy); white-space: normal; }
 
